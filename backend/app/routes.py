@@ -119,8 +119,6 @@ def register_routes(app):
 
         return jsonify({"message": "Publicación creada exitosamente"}), 201
 
-
-
 # METODOS GET
 
     @app.route('/list_users', methods=['GET'])
@@ -175,3 +173,163 @@ def register_routes(app):
             })
 
         return jsonify(publicacion_list)
+
+#METODOS PUT
+
+    @app.route('/update_comment/<int:comment_id>', methods=['PUT'])
+    def update_comment(comment_id):
+        data = request.get_json()
+        db = next(get_db())  # Obtén la sesión de base de datos
+
+        # Buscar el comentario a actualizar
+        comment = db.query(Comments).filter_by(IDcomments=comment_id).first()
+        if not comment:
+            return jsonify({"message": "Comentario no encontrado"}), 404
+
+        # Actualizar el contenido del comentario
+        if 'contenido' in data:
+            comment.contenido = data['contenido']
+
+        db.commit()
+
+        return jsonify({"message": "Comentario actualizado exitosamente"}), 200
+
+    @app.route('/update_like/<int:like_id>', methods=['PUT'])
+    def update_like(like_id):
+        data = request.get_json()
+        db = next(get_db())  # Obtén la sesión de base de datos
+
+        # Buscar el like a actualizar
+        like = db.query(Likes).filter_by(IDlike=like_id).first()
+        if not like:
+            return jsonify({"message": "Like no encontrado"}), 404
+
+        # Actualizar el nombre del like
+        if 'nombrelike' in data:
+            like.nombrelike = data['nombrelike']
+
+        db.commit()
+
+        return jsonify({"message": "Like actualizado exitosamente"}), 200
+
+
+    @app.route('/update_filtro/<int:filtro_id>', methods=['PUT'])
+    def update_filtro(filtro_id):
+        data = request.get_json()
+        db = next(get_db())  # Obtén la sesión de base de datos
+
+        # Buscar el filtro a actualizar
+        filtro = db.query(Filtros).filter_by(IDfiltro=filtro_id).first()
+        if not filtro:
+            return jsonify({"message": "Filtro no encontrado"}), 404
+
+        # Actualizar el nombre del filtro
+        if 'nombreFiltro' in data:
+            filtro.nombreFiltro = data['nombreFiltro']
+
+        db.commit()
+
+        return jsonify({"message": "Filtro actualizado exitosamente"}), 200
+    
+    @app.route('/update_publicacion/<int:public_id>', methods=['PUT'])
+    def update_publicacion(public_id):
+        data = request.get_json()
+        db = next(get_db())  # Obtén la sesión de base de datos
+
+        # Buscar la publicación a actualizar
+        publicacion = db.query(Publicaciones).filter_by(IDpublic=public_id).first()
+        if not publicacion:
+            return jsonify({"message": "Publicación no encontrada"}), 404
+
+        # Actualizar los campos si están presentes en los datos
+        if 'ruta' in data:
+            publicacion.ruta = data['ruta']
+        
+        if 'userPublicID' in data:
+            publicacion.userPublicID = data['userPublicID']
+
+        if 'comentPublicID' in data:
+            comentario = db.query(Comments).filter_by(IDcomments=data['comentPublicID']).first()
+            if comentario:
+                publicacion.comentPublicID = comentario.IDcomments
+            else:
+                return jsonify({"message": "Comentario no encontrado"}), 404
+
+        if 'likePublicID' in data:
+            like = db.query(Likes).filter_by(IDlike=data['likePublicID']).first()
+            if like:
+                publicacion.likePublicID = like.IDlike
+            else:
+                return jsonify({"message": "Like no encontrado"}), 404
+
+        if 'filtroPublicID' in data:
+            filtro = db.query(Filtros).filter_by(IDfiltro=data['filtroPublicID']).first()
+            if filtro:
+                publicacion.filtroPublicID = filtro.IDfiltro
+            else:
+                return jsonify({"message": "Filtro no encontrado"}), 404
+
+        db.commit()
+
+        return jsonify({"message": "Publicación actualizada exitosamente"}), 200
+
+#METODOS DELETE
+
+    @app.route('/delete_comment/<int:comment_id>', methods=['DELETE'])
+    def delete_comment(comment_id):
+        db = next(get_db())  # Obtén la sesión de base de datos
+
+        # Buscar el comentario a eliminar
+        comment = db.query(Comments).filter_by(IDcomments=comment_id).first()
+        if not comment:
+            return jsonify({"message": "Comentario no encontrado"}), 404
+
+        db.delete(comment)
+        db.commit()
+
+        return jsonify({"message": "Comentario eliminado exitosamente"}), 200
+    
+    @app.route('/delete_like/<int:like_id>', methods=['DELETE'])
+    def delete_like(like_id):
+        db = next(get_db())  # Obtén la sesión de base de datos
+
+        # Buscar el like a eliminar
+        like = db.query(Likes).filter_by(IDlike=like_id).first()
+        if not like:
+            return jsonify({"message": "Like no encontrado"}), 404
+
+        db.delete(like)
+        db.commit()
+
+        return jsonify({"message": "Like eliminado exitosamente"}), 200
+    
+    @app.route('/delete_filtro/<int:filtro_id>', methods=['DELETE'])
+    def delete_filtro(filtro_id):
+        db = next(get_db())  # Obtén la sesión de base de datos
+
+        # Buscar el filtro a eliminar
+        filtro = db.query(Filtros).filter_by(IDfiltro=filtro_id).first()
+        if not filtro:
+            return jsonify({"message": "Filtro no encontrado"}), 404
+
+        db.delete(filtro)
+        db.commit()
+
+        return jsonify({"message": "Filtro eliminado exitosamente"}), 200
+    
+    @app.route('/delete_publicacion/<int:public_id>', methods=['DELETE'])
+    def delete_publicacion(public_id):
+        db = next(get_db())  # Obtén la sesión de base de datos
+
+        # Buscar la publicación a eliminar
+        publicacion = db.query(Publicaciones).filter_by(IDpublic=public_id).first()
+        if not publicacion:
+            return jsonify({"message": "Publicación no encontrada"}), 404
+
+        db.delete(publicacion)
+        db.commit()
+
+        return jsonify({"message": "Publicación eliminada exitosamente"}), 200
+
+
+

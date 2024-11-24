@@ -1,19 +1,36 @@
-from backend.database.models import Comments, Publicaciones
+
+
+from backend.database.models import Comments
 from database.__init__ import db as session
 
-# Crear un comentario y asociarlo a una publicación
-def create_comment(contenido, publicacion_id):
+# Crear comentario
+def create_comment(contenido):
+    # Crea un nuevo comentario
     new_comment = Comments(contenido=contenido)
     session.add(new_comment)
     session.commit()
-    
-    # Asociar el comentario a la publicación
-    publicacion = session.query(Publicaciones).filter(Publicaciones.IDpublic == publicacion_id).first()
-    if publicacion:
-        publicacion.comentPublicID = new_comment.IDcomments  # Asociar el comentario a la publicación
-        session.commit()
     return new_comment
 
-# Obtener comentarios por publicación
-def get_comments_by_publicacion(publicacion_id):
-    return session.query(Comments).join(Publicaciones).filter(Publicaciones.IDpublic == publicacion_id).all()
+# Obtener comentario por ID
+def get_comment_by_id(comment_id):
+    return session.query(Comments).filter(Comments.IDcomments == comment_id).first()
+
+# Actualizar comentario
+def update_comment(comment_id, contenido):
+    comment = session.query(Comments).filter(Comments.IDcomments == comment_id).first()
+    if not comment:
+        raise ValueError("Comentario no encontrado.")
+    
+    comment.contenido = contenido
+    session.commit()
+    return comment
+
+# Eliminar comentario
+def delete_comment(comment_id):
+    comment = session.query(Comments).filter(Comments.IDcomments == comment_id).first()
+    if not comment:
+        raise ValueError("Comentario no encontrado.")
+    
+    session.delete(comment)
+    session.commit()
+    return True
