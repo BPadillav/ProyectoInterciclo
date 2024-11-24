@@ -15,6 +15,7 @@ class User(Base):
 
     publicaciones = relationship("Publicaciones", back_populates="usuario")
 
+
 # Tabla Comments
 class Comments(Base):
     __tablename__ = "comments"

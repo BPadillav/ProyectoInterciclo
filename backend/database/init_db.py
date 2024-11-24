@@ -1,9 +1,7 @@
-from backend.database.config import Config
-
-from backend.database.models import Base
-
-from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy import create_engine
+from backend.database.config import Config
+from backend.database.models import Base
 from sqlalchemy.exc import OperationalError
 import time
 
@@ -36,3 +34,11 @@ def init_db(app=None):
     print("Creando tablas...")
     Base.metadata.create_all(bind=engine)
     print("Tablas creadas exitosamente.")
+
+def get_db():
+    """Devuelve una sesión de base de datos para usar en las rutas."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
