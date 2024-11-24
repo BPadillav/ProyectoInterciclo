@@ -176,6 +176,26 @@ def register_routes(app):
 
 #METODOS PUT
 
+    @app.route('/update_user/<int:user_id>', methods=['PUT'])
+    def update_user(user_id):
+        data = request.get_json()
+        db = next(get_db())  # Obtén la sesión de base de datos
+
+        # Buscar el usuario a actualizar
+        user = db.query(User).filter_by(IDuser=user_id).first()
+        if not user:
+            return jsonify({"message": "Usuario no encontrado"}), 404
+
+        # Actualizar el correo y la contraseña si están presentes en los datos enviados
+        if 'correo' in data:
+            user.correo = data['correo']
+        if 'contraseña' in data:
+            user.contraseña = data['contraseña']
+
+        db.commit()
+
+        return jsonify({"message": "Usuario actualizado exitosamente"}), 200
+
     @app.route('/update_comment/<int:comment_id>', methods=['PUT'])
     def update_comment(comment_id):
         data = request.get_json()
@@ -274,6 +294,20 @@ def register_routes(app):
         return jsonify({"message": "Publicación actualizada exitosamente"}), 200
 
 #METODOS DELETE
+
+    @app.route('/delete_user/<int:user_id>', methods=['DELETE'])
+    def delete_user(user_id):
+        db = next(get_db())  # Obtén la sesión de base de datos
+
+        # Buscar el usuario a eliminar
+        user = db.query(User).filter_by(IDuser=user_id).first()
+        if not user:
+            return jsonify({"message": "Usuario no encontrado"}), 404
+
+        db.delete(user)
+        db.commit()
+
+        return jsonify({"message": "Usuario eliminado exitosamente"}), 200
 
     @app.route('/delete_comment/<int:comment_id>', methods=['DELETE'])
     def delete_comment(comment_id):
