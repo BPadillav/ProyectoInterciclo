@@ -1,0 +1,82 @@
+/* Centrado general */
+:host {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    background-color: var(--ion-background-color);
+}
+
+main {
+    width: 100%;
+    max-width: 935px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Estilos para el panel de registro */
+.panel {
+    background-color: var(--ion-card-background);
+    border: 1px solid var(--ion-border-color);
+    border-radius: 5px;
+    width: 100%;
+    max-width: 350px;
+    padding: 20px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+form {
+    width: 100%;
+}
+
+form ion-item {
+    --background: var(--ion-item-background);
+    margin-bottom: 10px;
+}
+
+form ion-button {
+    width: 100%;
+    margin-top: 10px;
+}
+
+/* Estilos para los textos de términos */
+.terms {
+    font-size: 0.85rem;
+    color: var(--ion-text-color-medium);
+    text-align: center;
+    margin-top: 10px;
+}
+
+.terms a {
+    color: var(--ion-color-primary);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* Sección de cambio a inicio de sesión */
+.login-instead {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+.login-instead a {
+    font-weight: bold;
+    margin-left: 5px;
+}
+
+/* Logo en modo oscuro */
+@media (prefers-color-scheme: dark) {
+    .img-insta {
+        filter: invert(1);
+    }
+}

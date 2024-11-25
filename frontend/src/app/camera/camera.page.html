@@ -1,0 +1,50 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="exitCamera()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button>
+        <ion-icon name="flash-outline"></ion-icon>
+      </ion-button>
+      <ion-button>
+        <ion-icon name="settings-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Vista previa de la cámara -->
+  <div class="camera-preview-container" *ngIf="!photo">
+    <video #cameraPreview autoplay muted playsinline></video>
+  </div>
+
+  <!-- Controles -->
+  <div class="controls">
+    <!-- Botones principales -->
+    <div class="main-buttons">
+      <ion-button fill="clear" class="gallery-button" (click)="selectPhoto()">
+        <ion-icon name="images-outline"></ion-icon>
+      </ion-button>
+      <ion-button fill="clear" class="capture-button" (click)="takePhoto()">
+        <ion-icon name="radio-button-off"></ion-icon>
+      </ion-button>
+      <ion-button fill="clear" class="switch-camera-button" (click)="switchCamera()">
+        <ion-icon name="camera-reverse-outline"></ion-icon>
+      </ion-button>
+    </div>
+
+    <!-- Selector de modo -->
+    <ion-segment value="historia" (ionChange)="switchMode($event)" class="mode-selector">
+      <ion-segment-button value="publicacion">
+        <ion-label>Publicación</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="historia">
+        <ion-label>Historia</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
+</ion-content>

@@ -1,0 +1,173 @@
+/* General styles */
+:host {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    background-color: var(--ion-background-color);
+}
+
+main {
+    width: 100%;
+    max-width: 935px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+a {
+    text-decoration: none;
+    color: var(--ion-color-primary);
+}
+
+h1 {
+    margin: 20px 0;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+/* Panel styles */
+.panel {
+    background-color: var(--ion-card-background);
+    border: 1px solid var(--ion-border-color);
+    border-radius: 5px;
+    width: 100%;
+    max-width: 350px;
+    padding: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+/* Login form styles */
+form {
+    width: 100%;
+}
+
+form ion-item {
+    --background: var(--ion-item-background);
+    margin-bottom: 10px;
+}
+
+form ion-button {
+    width: 100%;
+}
+
+/* Separator styles */
+.separator {
+    display: flex;
+    align-items: center;
+    margin: 20px 0;
+    width: 100%;
+    position: relative;
+}
+
+.separator span {
+    flex: 1;
+    height: 1px;
+    background-color: var(--ion-border-color);
+}
+
+.separator .or {
+    margin: 0 10px;
+    color: var(--ion-text-color-medium);
+    font-weight: bold;
+}
+
+/* Login with Facebook */
+.login-with-fb {
+    width: 100%;
+    text-align: center;
+    margin-top: 15px;
+}
+
+.login-with-fb ion-icon {
+    font-size: 1.5rem;
+    margin-right: 5px;
+}
+
+.login-with-fb a {
+    font-weight: bold;
+}
+
+.forgot-password {
+    font-size: 0.9rem;
+    margin-top: 10px;
+}
+
+/* Register section */
+.register {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+.register a {
+    font-weight: bold;
+    margin-left: 5px;
+}
+
+/* App download section */
+.app-download {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.app-download p {
+    margin-bottom: 10px;
+}
+
+.app-download img {
+    height: 40px;
+    margin: 0 5px;
+}
+
+/* Footer styles */
+footer {
+    margin-top: 30px;
+    text-align: center;
+}
+
+footer ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+footer ul li {
+    margin: 0 10px;
+}
+
+footer ul li a {
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+footer .copyright {
+    font-weight: bold;
+    color: var(--ion-text-color-medium);
+}
+
+/* Media queries */
+@media screen and (max-width: 767px) {
+    main {
+        margin: 30px auto 50px auto;
+    }
+}
+
+/* Detecta si el sistema está en modo oscuro */
+@media (prefers-color-scheme: dark) {
+    .img-insta {
+        filter: invert(1);
+    }
+}

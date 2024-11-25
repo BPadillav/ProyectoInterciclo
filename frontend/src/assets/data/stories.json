@@ -1,0 +1,27 @@
+[
+    {
+        "id": 1,
+        "username": "your_story",
+        "avatar": "assets/img/foto.jpeg"
+    },
+    {
+        "id": 2,
+        "username": "tony",
+        "avatar": "assets/img/foto.jpeg"
+    },
+    {
+        "id": 3,
+        "username": "natasha",
+        "avatar": "assets/img/foto.jpeg"
+    },
+    {
+        "id": 4,
+        "username": "bruce",
+        "avatar": "assets/img/foto.jpeg"
+    },
+    {
+        "id": 5,
+        "username": "steve",
+        "avatar": "assets/img/foto.jpeg"
+    }
+]

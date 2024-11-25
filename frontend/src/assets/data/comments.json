@@ -1,0 +1,39 @@
+{
+  "1": [
+    {
+      "username": "enrique_samaniego03",
+      "avatar": "assets/img/avatars/1.jpg",
+      "comment": "El feat con khea no tengo duda 😈 afja jfaoi jfqwi jfiq wjfoi qjwfoi jqw fijqw oifjq wij fqw jfwo qifjqowi jfwq jf qijw",
+      "time": "1 sem",
+      "likes": 139,
+      "replies": [],
+      "isReplying": false
+    },
+    {
+      "username": "angelatorres",
+      "avatar": "assets/img/avatars/2.jpg",
+      "comment": "😱💖",
+      "time": "1 sem",
+      "likes": 333,
+      "replies": [],
+      "isReplying": false
+    },
+    {
+      "username": "rusherkingve",
+      "avatar": "assets/img/avatars/3.jpg",
+      "comment": "Es con khea???",
+      "time": "1 sem",
+      "likes": 51,
+      "replies": [
+        {
+          "username": "vi.machado._",
+          "avatar": "assets/img/avatars/4.jpg",
+          "comment": "che thomi te lo conté solo a vos, no era para decir 🤦‍♀️",
+          "time": "1 sem",
+          "likes": 17
+        }
+      ],
+      "isReplying": false
+    }
+  ]
+}

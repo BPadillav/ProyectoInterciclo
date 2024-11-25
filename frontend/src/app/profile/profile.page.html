@@ -1,0 +1,76 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>{{ profile.username }}</ion-title>
+    <ion-buttons slot="end">
+      <!-- Botón directo para cerrar sesión -->
+      <ion-button color="dark" (click)="logout()">
+        <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+
+<ion-content>
+  <!-- Encabezado del perfil -->
+  <ion-row class="profile-header ion-align-items-center">
+    <ion-col size="auto">
+      <ion-avatar class="avatar-lg has-update has-status">
+        <img [src]="profile.avatar" alt="{{ profile.username }}">
+      </ion-avatar>
+    </ion-col>
+    <ion-col>
+      <ion-row class="profile-stats">
+        <ion-col>
+          <div class="stats-number">{{ profile.posts }}</div>
+          <div class="stats-label">Posts</div>
+        </ion-col>
+        <ion-col>
+          <div class="stats-number">{{ profile.followers }}</div>
+          <div class="stats-label">Followers</div>
+        </ion-col>
+        <ion-col>
+          <div class="stats-number">{{ profile.following }}</div>
+          <div class="stats-label">Following</div>
+        </ion-col>
+      </ion-row>
+    </ion-col>
+  </ion-row>
+
+  <!-- Información del perfil -->
+  <div class="ion-padding profile-info">
+    <strong>{{ profile.name }}</strong>
+    <div>
+      {{ profile.bio }}
+    </div>
+    <div *ngIf="profile.website">
+      Homepage: <a [href]="profile.website" target="_blank" rel="noopener" class="hash-tag"><strong>{{ profile.website }}</strong></a>
+    </div>
+  </div>
+
+  <!-- Botón para editar el perfil -->
+  <div class="ion-padding">
+    <ion-button expand="block" fill="outline" color="dark" size="small">
+      Edit Profile
+    </ion-button>
+  </div>
+
+  <!-- Segmento para cambiar de vista -->
+  <ion-segment value="active">
+    <ion-segment-button value="grid">
+      <ion-icon name="grid-outline"></ion-icon>
+    </ion-segment-button>
+    <ion-segment-button value="tagged">
+      <ion-icon name="people-circle-outline"></ion-icon>
+    </ion-segment-button>
+  </ion-segment>
+
+  <!-- Grid de publicaciones -->
+  <div class="post-grid">
+    <ion-row>
+      <ion-col size="4" *ngFor="let post of posts">
+        <div class="post-item bg-image" [style.backgroundImage]="'url(' + post.image + ')'"></div>
+      </ion-col>
+    </ion-row>
+  </div>
+</ion-content>

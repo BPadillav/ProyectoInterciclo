@@ -1,0 +1,40 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="discardPhoto()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Editar Foto</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="savePhoto()">
+        <ion-icon name="checkmark-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Contenedor de la foto -->
+  <div class="photo-container">
+    <img [src]="displayPhoto" alt="Foto tomada">
+  </div>
+
+  <!-- Alternar entre original y filtro -->
+  <div class="toggle-original">
+    <ion-button fill="clear" (click)="toggleOriginal()">
+      <ion-icon name="swap-horizontal-outline"></ion-icon>
+      {{ showOriginal ? 'Original' : 'Filtrado' }}
+    </ion-button>
+  </div>
+
+  <!-- Selector de Filtros -->
+  <div class="filters">
+    <div class="filter-item" *ngFor="let filter of filters" (click)="applyFilter(filter)">
+      <div class="filter-preview">
+        <img [src]="displayPhoto" [style.filter]="filter.value" alt="Filtro {{ filter.name }}">
+      </div>
+      <span>{{ filter.name }}</span>
+    </div>
+  </div>
+</ion-content>

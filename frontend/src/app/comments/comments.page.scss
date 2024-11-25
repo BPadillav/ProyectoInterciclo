@@ -1,0 +1,103 @@
+.comment-item {
+  padding: 8px;
+  border-bottom: 1px solid var(--ion-color-light);
+
+  ion-row {
+    align-items: flex-start; /* Asegura que los elementos estén alineados al inicio verticalmente */
+  }
+
+  .comment-header {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Espaciado entre el nombre y el tiempo */
+    font-size: 14px;
+
+    .username {
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .time {
+      color: var(--ion-color-medium);
+      font-size: 12px;
+    }
+  }
+
+  .comment-body {
+    margin: 4px 0;
+    line-height: 1.5;
+    font-size: 14px;
+    color: var(--ion-color-dark);
+  }
+
+  .icon-and-likes {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    ion-icon {
+      font-size: 20px;
+      margin-bottom: 2px;
+      color: var(--ion-color-medium);
+    }
+
+    .likes {
+      font-size: 12px;
+      text-align: center;
+      color: var(--ion-color-medium);
+    }
+  }
+
+  .reply {
+    margin-top: -10px; /* Espaciado entre el comentario y el botón */
+    font-size: 13px;
+    color: var(--ion-color-medium);
+    cursor: pointer;
+    text-align: left; /* Alinea el texto del botón a la izquierda */
+    margin-left: 62px; /* Alinea el botón con el inicio del texto del comentario */
+    display: block; /* Asegura que esté en una nueva línea */
+  }
+
+  &.reply {
+    margin-left: 32px;
+    padding-left: 8px;
+    // border-left: 2px solid var(--ion-color-light);
+  }
+}
+
+.reply-input {
+  margin: 8px 0;
+
+  ion-item {
+    --background: var(--ion-color-light);
+    border-radius: 20px;
+    padding: 4px;
+  }
+
+  ion-button {
+    --background: var(--ion-color-primary);
+    --padding-start: 12px;
+    --padding-end: 12px;
+    margin-left: 8px;
+  }
+}
+
+.replies {
+  margin-top: 15px;
+}
+
+ion-footer ion-toolbar {
+  display: flex;
+  align-items: center;
+
+  ion-avatar {
+    margin-right: 8px;
+  }
+
+  ion-input {
+    --background: var(--ion-color-light);
+    --padding-start: 12px;
+    border-radius: 20px;
+  }
+}
