@@ -1,10 +1,8 @@
-# version: '3.9'
-
 services:
   backend:
     build:
-      context: ..
-      dockerfile: dockerfile/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     container_name: flask_backend
     ports:
       - "5000:5000"
@@ -13,7 +11,17 @@ services:
     depends_on:
       - mysql
     volumes:
-      - ../backend:/app/backend
+      - ./backend:/app/backend
+      - ./run.py:/app/run.py
+      - ./cert.pem:/app/cert.pem
+      - ./key.pem:/app/key.pem
+    entrypoint: >
+      sh -c "
+      while ! nc -z mysql 3306; do
+        echo 'Esperando a MySQL...';
+        sleep 5;
+      done;
+      python run.py"
     networks:
       - flask_network
 

@@ -15,11 +15,11 @@ def create():
     try:
         data = request.get_json()
         new_publicacion = create_publicacion(
-            user_id=data['user_id'],
             ruta=data['ruta'],
-            coment_id=data.get('coment_id'),
-            like_id=data.get('like_id'),
-            filtro_id=data.get('filtro_id')
+            userPublicID=data['user_id'],
+            comentPublicID=data.get('coment_id'),
+            likePublicID=data.get('like_id'),
+            filtroPublicID=data.get('filtro_id')
         )
         return jsonify({"id": new_publicacion.IDpublic, "ruta": new_publicacion.ruta}), 201
     except ValueError as e:
@@ -29,7 +29,10 @@ def create():
 @publicacion_bp.route('/publicaciones/user/<int:user_id>', methods=['GET'])
 def get_user_publicaciones(user_id):
     publicaciones = get_publicaciones_by_user(user_id)
-    return jsonify([{"id": pub.IDpublic, "ruta": pub.ruta} for pub in publicaciones])
+    return jsonify([
+        {"id": pub.IDpublic, "ruta": pub.ruta, "fecha": pub.fecha.strftime("%Y-%m-%d %H:%M:%S")}
+        for pub in publicaciones
+    ])
 
 # Obtener una publicación por ID
 @publicacion_bp.route('/publicaciones/<int:public_id>', methods=['GET'])
@@ -37,7 +40,7 @@ def get(public_id):
     publicacion = get_publicacion_by_id(public_id)
     if not publicacion:
         return jsonify({"error": "Publicación no encontrada"}), 404
-    return jsonify({"id": publicacion.IDpublic, "ruta": publicacion.ruta})
+    return jsonify({"id": publicacion.IDpublic, "ruta": publicacion.ruta, "fecha": publicacion.fecha.strftime("%Y-%m-%d %H:%M:%S")})
 
 # Eliminar una publicación
 @publicacion_bp.route('/publicaciones/<int:public_id>', methods=['DELETE'])
@@ -56,9 +59,9 @@ def update(public_id):
         updated_publicacion = update_publicacion(
             public_id,
             ruta=data.get('ruta'),
-            coment_id=data.get('coment_id'),
-            like_id=data.get('like_id'),
-            filtro_id=data.get('filtro_id')
+            comentPublicID=data.get('coment_id'),
+            likePublicID=data.get('like_id'),
+            filtroPublicID=data.get('filtro_id')
         )
         return jsonify({"id": updated_publicacion.IDpublic, "ruta": updated_publicacion.ruta}), 200
     except ValueError as e:

@@ -10,8 +10,9 @@ class User(Base):
     __tablename__ = "users"
 
     IDuser = Column(Integer, primary_key=True, autoincrement=True)
-    correo = Column(String(255), unique=True, nullable=False)
-    contraseña = Column(String(255), nullable=False)
+    email = Column(String(255), unique=True, nullable=False)
+    password = Column(String(255), nullable=False)
+    avatar = Column(String(255), nullable=True)  # Nuevo campo para la imagen de avatar
 
     publicaciones = relationship("Publicaciones", back_populates="usuario")
 
@@ -22,8 +23,13 @@ class Comments(Base):
 
     IDcomments = Column(Integer, primary_key=True, autoincrement=True)
     contenido = Column(Text, nullable=False)
+    image = Column(String(255), nullable=True)  # Imagen opcional para el comentario
+    fecha = Column(DateTime, default=datetime.utcnow)  # Fecha del comentario
+    likes = Column(Integer, default=0)  # Likes en el comentario
 
     publicaciones = relationship("Publicaciones", back_populates="comentario")
+    respuestas = relationship("AnswersComments", back_populates="comentario")
+
 
 # Tabla Likes
 class Likes(Base):
@@ -34,6 +40,7 @@ class Likes(Base):
 
     publicaciones = relationship("Publicaciones", back_populates="like")
 
+
 # Tabla Filtros
 class Filtros(Base):
     __tablename__ = "filtros"
@@ -42,6 +49,7 @@ class Filtros(Base):
     nombreFiltro = Column(String(255), nullable=False)
 
     publicaciones = relationship("Publicaciones", back_populates="filtro")
+
 
 # Tabla Publicaciones
 class Publicaciones(Base):
@@ -62,3 +70,16 @@ class Publicaciones(Base):
     comentario = relationship("Comments", back_populates="publicaciones")
     like = relationship("Likes", back_populates="publicaciones")
     filtro = relationship("Filtros", back_populates="publicaciones")
+
+
+# Tabla AnswersComments
+class AnswersComments(Base):
+    __tablename__ = "answers_comments"
+
+    IDanswer = Column(Integer, primary_key=True, autoincrement=True)
+    contenido = Column(Text, nullable=False)
+    fecha = Column(DateTime, default=datetime.utcnow)  # Fecha de la respuesta
+    likes = Column(Integer, default=0)  # Likes en la respuesta
+    commentID = Column(Integer, ForeignKey("comments.IDcomments"), nullable=False)
+
+    comentario = relationship("Comments", back_populates="respuestas")

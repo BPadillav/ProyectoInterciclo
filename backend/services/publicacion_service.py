@@ -3,6 +3,9 @@ from database.__init__ import db as session
 
 # Crear publicación
 def create_publicacion(ruta, userPublicID, comentPublicID=None, likePublicID=None, filtroPublicID=None):
+    if not ruta:
+        raise ValueError("La ruta de la imagen es obligatoria.")
+    
     new_publicacion = Publicaciones(
         ruta=ruta,
         userPublicID=userPublicID,
@@ -13,6 +16,10 @@ def create_publicacion(ruta, userPublicID, comentPublicID=None, likePublicID=Non
     session.add(new_publicacion)
     session.commit()
     return new_publicacion
+
+# Obtener publicaciones de un usuario
+def get_publicaciones_by_user(user_id):
+    return session.query(Publicaciones).filter(Publicaciones.userPublicID == user_id).all()
 
 # Obtener publicación por ID
 def get_publicacion_by_id(publicacion_id):

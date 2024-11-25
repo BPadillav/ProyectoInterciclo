@@ -1,12 +1,14 @@
-
-
 from backend.database.models import Comments
 from database.__init__ import db as session
 
 # Crear comentario
-def create_comment(contenido):
-    # Crea un nuevo comentario
-    new_comment = Comments(contenido=contenido)
+def create_comment(contenido=None, image=None):
+    # Validar que al menos uno de los campos esté lleno
+    if not contenido and not image:
+        raise ValueError("El comentario debe tener contenido o una imagen.")
+
+    # Crear un nuevo comentario
+    new_comment = Comments(contenido=contenido, image=image)
     session.add(new_comment)
     session.commit()
     return new_comment
@@ -16,12 +18,18 @@ def get_comment_by_id(comment_id):
     return session.query(Comments).filter(Comments.IDcomments == comment_id).first()
 
 # Actualizar comentario
-def update_comment(comment_id, contenido):
+def update_comment(comment_id, contenido=None, image=None):
     comment = session.query(Comments).filter(Comments.IDcomments == comment_id).first()
     if not comment:
         raise ValueError("Comentario no encontrado.")
-    
-    comment.contenido = contenido
+
+    # Validar que al menos uno de los campos esté lleno
+    if not contenido and not image:
+        raise ValueError("El comentario debe tener contenido o una imagen.")
+
+    # Actualizar los campos proporcionados
+    comment.contenido = contenido or comment.contenido
+    comment.image = image or comment.image
     session.commit()
     return comment
 

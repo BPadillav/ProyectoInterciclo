@@ -2,25 +2,29 @@ from backend.database.models import User
 from database.__init__ import db as session
 from werkzeug.security import generate_password_hash, check_password_hash
 
+DEFAULT_AVATAR = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+
 # Registrar usuario
-def create_user(email, password):
+def create_user(email, password, avatar=None):
     # Verifica si el usuario ya existe
-    existing_user = session.query(User).filter(User.correo == email).first()
+    existing_user = session.query(User).filter(User.email == email).first()
     if existing_user:
         raise ValueError("El correo ya está registrado.")
 
-    # Encripta la contraseña
+    # Asignar avatar predeterminado si no se proporciona uno
+    avatar = avatar or DEFAULT_AVATAR
+
+    # Crear nuevo usuario
     hashed_password = generate_password_hash(password)
-    new_user = User(correo=email, contraseña=hashed_password)
+    new_user = User(email=email, password=hashed_password, avatar=avatar)
     session.add(new_user)
     session.commit()
     return new_user
 
 # Iniciar sesión
 def login_user(email, password):
-    # Verifica si el usuario existe
-    user = session.query(User).filter(User.correo == email).first()
-    if not user or not check_password_hash(user.contraseña, password):
+    user = session.query(User).filter(User.email == email).first()
+    if not user or not check_password_hash(user.password, password):
         raise ValueError("Credenciales inválidas.")
     return user
 
@@ -29,15 +33,17 @@ def get_user_by_id(user_id):
     return session.query(User).filter(User.IDuser == user_id).first()
 
 # Actualizar usuario
-def update_user(user_id, email=None, password=None):
+def update_user(user_id, email=None, password=None, avatar=None):
     user = session.query(User).filter(User.IDuser == user_id).first()
     if not user:
         raise ValueError("Usuario no encontrado.")
 
     if email:
-        user.correo = email
+        user.email = email
     if password:
-        user.contraseña = generate_password_hash(password)
+        user.password = generate_password_hash(password)
+    if avatar:
+        user.avatar = avatar
 
     session.commit()
     return user
