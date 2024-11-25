@@ -1,11 +1,11 @@
 from backend.database.models import User
 from database.__init__ import db as session
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash # type: ignore
 
 DEFAULT_AVATAR = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
 
 # Registrar usuario
-def create_user(email, password, avatar=None):
+def create_user(email, password, username, fullname,avatar=None):
     # Verifica si el usuario ya existe
     existing_user = session.query(User).filter(User.email == email).first()
     if existing_user:
@@ -16,7 +16,7 @@ def create_user(email, password, avatar=None):
 
     # Crear nuevo usuario
     hashed_password = generate_password_hash(password)
-    new_user = User(email=email, password=hashed_password, avatar=avatar)
+    new_user = User(email=email, password=hashed_password, username = username, fullname = fullname, avatar=avatar)
     session.add(new_user)
     session.commit()
     return new_user

@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify # type: ignore
 from backend.services.user_service import (
     create_user, login_user, get_user_by_id, update_user, delete_user,get_all_users
 )
@@ -13,11 +13,15 @@ def register_user():
         new_user = create_user(
             email=data['email'], 
             password=data['password'], 
+            username=data['username'],
+            fullname =  data['fullname'],
             avatar=data.get('avatar')  # Avatar opcional
         )
         return jsonify({
             "id": new_user.IDuser, 
             "email": new_user.email,
+            "username": new_user.username,
+            "fullname": new_user.fullname,
             "avatar": new_user.avatar
         }), 201
     except ValueError as e:
@@ -32,6 +36,8 @@ def login():
         return jsonify({
             "id": user.IDuser, 
             "email": user.email,
+            "username": user.username,
+            "fullname": user.fullname,
             "avatar": user.avatar
         }), 200
     except ValueError as e:
@@ -46,6 +52,8 @@ def get_user(user_id):
     return jsonify({
         "id": user.IDuser, 
         "email": user.email,
+        "username": user.username,
+        "fullname": user.fullname,
         "avatar": user.avatar
     })
 
@@ -58,11 +66,15 @@ def update_user_info(user_id):
             user_id, 
             email=data.get('email'), 
             password=data.get('password'),
+            username=data.get('username'),
+            fullname=data.get('fullname'),
             avatar=data.get('avatar')
         )
         return jsonify({
             "id": updated_user.IDuser, 
             "email": updated_user.email,
+            "username": updated_user.username,
+            "fullname": updated_user.fullname,
             "avatar": updated_user.avatar
         })
     except ValueError as e:
@@ -81,7 +93,7 @@ def delete_user_info(user_id):
 def list_users():
     users = get_all_users()  # Asegúrate de implementar esta función en `user_service.py`
     return jsonify([
-        {"id": user.IDuser, "email": user.email, "avatar": user.avatar}
+        {"id": user.IDuser, "email": user.email, "username": user.username, "fullname": user.fullname, "avatar": user.avatar}
         for user in users
     ]), 200
 

@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text # type: ignore
+from sqlalchemy.ext.declarative import declarative_base # type: ignore
+from sqlalchemy.orm import relationship # type: ignore
 from datetime import datetime
 
 Base = declarative_base()
@@ -11,6 +11,8 @@ class User(Base):
 
     IDuser = Column(Integer, primary_key=True, autoincrement=True)
     email = Column(String(255), unique=True, nullable=False)
+    username = Column(String(255), unique=True, nullable=False)
+    fullname = Column(String(255), unique=True, nullable=False)
     password = Column(String(255), nullable=False)
     avatar = Column(String(255), nullable=True)  # Nuevo campo para la imagen de avatar
 
