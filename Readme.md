@@ -1,4 +1,4 @@
-![Logo de la Universidad](img/logo.png)
+![Logo de la Universidad](logo.png)
 
 
 # PRÁCTICA DE LABORATORIO
@@ -9,6 +9,7 @@
 **ASIGNATURA:** Computación Paralela  
 
 **NRO. PRÁCTICA:** Proyecto Interciclo 
+
 **TÍTULO PRÁCTICA:** UPSGlam una Plataforma Social de Imágenes con Convolución y Dockerización   
 
 **OBJETIVO ALCANZADO:**  
