@@ -15,30 +15,9 @@ class User(Base):
     avatar = Column(String(255), nullable=True)  # Nuevo campo para la imagen de avatar
 
     publicaciones = relationship("Publicaciones", back_populates="usuario")
-
-
-# Tabla Comments
-class Comments(Base):
-    __tablename__ = "comments"
-
-    IDcomments = Column(Integer, primary_key=True, autoincrement=True)
-    contenido = Column(Text, nullable=False)
-    image = Column(String(255), nullable=True)  # Imagen opcional para el comentario
-    fecha = Column(DateTime, default=datetime.utcnow)  # Fecha del comentario
-    likes = Column(Integer, default=0)  # Likes en el comentario
-
-    publicaciones = relationship("Publicaciones", back_populates="comentario")
-    respuestas = relationship("AnswersComments", back_populates="comentario")
-
-
-# Tabla Likes
-class Likes(Base):
-    __tablename__ = "likes"
-
-    IDlike = Column(Integer, primary_key=True, autoincrement=True)
-    nombrelike = Column(String(255), nullable=False)
-
-    publicaciones = relationship("Publicaciones", back_populates="like")
+    comentarios = relationship("Comments", back_populates="usuario")
+    likes = relationship("Likes", back_populates="usuario")
+    respuestas = relationship("AnswersComments", back_populates="usuario")
 
 
 # Tabla Filtros
@@ -56,20 +35,39 @@ class Publicaciones(Base):
     __tablename__ = "publicaciones"
 
     IDpublic = Column(Integer, primary_key=True, autoincrement=True)
-    ruta = Column(String(255), nullable=False)
-    fecha = Column(DateTime, default=datetime.utcnow)
+    rutaImagen = Column(String(255), nullable=True)  # Ruta de la imagen subida
+    contenido = Column(Text, nullable=True)  # Contenido de texto asociado a la publicación
+    fecha = Column(DateTime, default=datetime.utcnow)  # Fecha de creación de la publicación
 
     # Foreign Keys
-    userPublicID = Column(Integer, ForeignKey("users.IDuser"), nullable=False)
-    comentPublicID = Column(Integer, ForeignKey("comments.IDcomments"), nullable=True)
-    likePublicID = Column(Integer, ForeignKey("likes.IDlike"), nullable=True)
-    filtroPublicID = Column(Integer, ForeignKey("filtros.IDfiltro"), nullable=True)
+    userIDPublic = Column(Integer, ForeignKey("users.IDuser"), nullable=False)  # Usuario que hizo la publicación
+    filtroIDPublic = Column(Integer, ForeignKey("filtros.IDfiltro"), nullable=True)  # Filtro asociado (si aplica)
 
     # Relationships
     usuario = relationship("User", back_populates="publicaciones")
-    comentario = relationship("Comments", back_populates="publicaciones")
-    like = relationship("Likes", back_populates="publicaciones")
+    comentarios = relationship("Comments", back_populates="publicacion")
+    likes = relationship("Likes", back_populates="publicacion")
     filtro = relationship("Filtros", back_populates="publicaciones")
+
+
+# Tabla Comments
+class Comments(Base):
+    __tablename__ = "comments"
+
+    IDcomments = Column(Integer, primary_key=True, autoincrement=True)
+    contenido = Column(Text, nullable=False)
+    image = Column(String(255), nullable=True)  # Imagen opcional para el comentario
+    fecha = Column(DateTime, default=datetime.utcnow)  # Fecha del comentario
+
+    # Foreign Keys
+    publicIDComment = Column(Integer, ForeignKey("publicaciones.IDpublic"), nullable=False)  # Relación con publicaciones
+    userIDComment = Column(Integer, ForeignKey("users.IDuser"), nullable=False)  # Relación con el usuario
+
+    # Relationships
+    usuario = relationship("User", back_populates="comentarios")
+    publicacion = relationship("Publicaciones", back_populates="comentarios")
+    respuestas = relationship("AnswersComments", back_populates="comentario")
+    likes = relationship("Likes", back_populates="comentario")
 
 
 # Tabla AnswersComments
@@ -79,7 +77,31 @@ class AnswersComments(Base):
     IDanswer = Column(Integer, primary_key=True, autoincrement=True)
     contenido = Column(Text, nullable=False)
     fecha = Column(DateTime, default=datetime.utcnow)  # Fecha de la respuesta
-    likes = Column(Integer, default=0)  # Likes en la respuesta
-    commentID = Column(Integer, ForeignKey("comments.IDcomments"), nullable=False)
 
+    # Foreign Keys
+    commentIDAnswer = Column(Integer, ForeignKey("comments.IDcomments"), nullable=False)  # Relación con el comentario original
+    userIDAnswer = Column(Integer, ForeignKey("users.IDuser"), nullable=False)  # Relación con el usuario que respondió
+
+    # Relationships
     comentario = relationship("Comments", back_populates="respuestas")
+    usuario = relationship("User", back_populates="respuestas")
+    likes = relationship("Likes", back_populates="respuesta")
+# Tabla Likes
+class Likes(Base):
+    __tablename__ = "likes"
+
+    IDlike = Column(Integer, primary_key=True, autoincrement=True)
+
+    # Foreign Keys
+    userIDLike = Column(Integer, ForeignKey("users.IDuser"), nullable=False)  # Usuario que dio el like
+    publicIDLike = Column(Integer, ForeignKey("publicaciones.IDpublic"), nullable=True)  # Publicación que recibió el like
+    commentIDLike = Column(Integer, ForeignKey("comments.IDcomments"), nullable=True)  # Comentario que recibió el like
+    answerIDLike = Column(Integer, ForeignKey("answers_comments.IDanswer"), nullable=True)  # Respuesta que recibió el like
+
+    # Relationships
+    usuario = relationship("User", back_populates="likes")
+    publicacion = relationship("Publicaciones", back_populates="likes")
+    comentario = relationship("Comments", back_populates="likes")
+    respuesta = relationship("AnswersComments", back_populates="likes")
+
+

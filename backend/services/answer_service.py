@@ -1,60 +1,128 @@
-from backend.database.models import AnswersComments
-from database.__init__ import db as session
+from flask import Blueprint, request, jsonify
+from backend.services.answer_service import (
+    create_answer,
+    get_answer_by_id,
+    update_answer,
+    delete_answer,
+    like_answer,
+    get_answers_by_comment
+)
+from backend.services.comment_service import get_comments_by_publicacion
+
+answer_bp = Blueprint('answer', __name__)
 
 # Crear respuesta
-def create_answer(contenido, commentID):
-    if not contenido:
-        raise ValueError("El contenido es obligatorio.")
-    
-    answer = AnswersComments(
-        contenido=contenido,
-        commentID=commentID
-    )
-    session.add(answer)
-    session.commit()
-    return answer
+@answer_bp.route('/answers', methods=['POST'])
+def register_answer():
+    """
+    Crea una nueva respuesta asociada a un comentario y un usuario.
+    """
+    try:
+        data = request.get_json()
+        new_answer = create_answer(
+            contenido=data['contenido'],
+            commentID=data['comment_id'],
+            userIDAnswer=data['user_id']
+        )
+        return jsonify({
+            "id": new_answer.IDanswer,
+            "contenido": new_answer.contenido,
+            "fecha": new_answer.fecha.strftime("%Y-%m-%d %H:%M:%S"),
+            "likes": new_answer.likes
+        }), 201
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
 
-# Obtener respuesta por ID
-def get_answer_by_id(answer_id):
-    return session.query(AnswersComments).filter(AnswersComments.IDanswer == answer_id).first()
+# Obtener todas las respuestas de un comentario
+@answer_bp.route('/answers/comment/<int:comment_id>', methods=['GET'])
+def get_answers_for_comment(comment_id):
+    """
+    Obtiene todas las respuestas asociadas a un comentario.
+    """
+    answers = get_answers_by_comment(comment_id, limit=None)  # Sin límite
+    return jsonify([
+        {
+            "id": answer.IDanswer,
+            "contenido": answer.contenido,
+            "fecha": answer.fecha.strftime("%Y-%m-%d %H:%M:%S"),
+            "likes": answer.likes
+        }
+        for answer in answers
+    ]), 200
+
+# Obtener dos comentarios con sus respuestas
+@answer_bp.route('/answers/publicacion/<int:public_id>/latest', methods=['GET'])
+def get_latest_comments_with_answers(public_id):
+    """
+    Obtiene los dos comentarios más recientes de una publicación con sus respuestas.
+    """
+    comments = get_comments_by_publicacion(public_id, limit=2)  # Solo 2 comentarios
+    result = []
+    for comment in comments:
+        answers = get_answers_by_comment(comment.IDcomments, limit=None)  # Todas las respuestas del comentario
+        result.append({
+            "comment": {
+                "id": comment.IDcomments,
+                "contenido": comment.contenido,
+                "fecha": comment.fecha.strftime("%Y-%m-%d %H:%M:%S"),
+                "likes": comment.likes
+            },
+            "answers": [
+                {
+                    "id": answer.IDanswer,
+                    "contenido": answer.contenido,
+                    "fecha": answer.fecha.strftime("%Y-%m-%d %H:%M:%S"),
+                    "likes": answer.likes
+                }
+                for answer in answers
+            ]
+        })
+    return jsonify(result), 200
 
 # Actualizar respuesta
-def update_answer(answer_id, contenido=None):
-    answer = session.query(AnswersComments).filter(AnswersComments.IDanswer == answer_id).first()
-    if not answer:
-        raise ValueError("Respuesta no encontrada.")
-    
-    if contenido:
-        answer.contenido = contenido
-    session.commit()
-    return answer
-
-# Eliminar respuesta
-def delete_answer(answer_id):
-    answer = session.query(AnswersComments).filter(AnswersComments.IDanswer == answer_id).first()
-    if not answer:
-        raise ValueError("Respuesta no encontrada.")
-    
-    session.delete(answer)
-    session.commit()
-    return True
+@answer_bp.route('/answers/<int:answer_id>', methods=['PUT'])
+def update_answer_info(answer_id):
+    """
+    Actualiza el contenido de una respuesta.
+    """
+    try:
+        data = request.get_json()
+        updated_answer = update_answer(
+            answer_id,
+            contenido=data.get('contenido')
+        )
+        return jsonify({
+            "id": updated_answer.IDanswer,
+            "contenido": updated_answer.contenido,
+            "fecha": updated_answer.fecha.strftime("%Y-%m-%d %H:%M:%S"),
+            "likes": updated_answer.likes
+        }), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
 
 # Incrementar likes
-def like_answer(answer_id):
-    answer = session.query(AnswersComments).filter(AnswersComments.IDanswer == answer_id).first()
-    if not answer:
-        raise ValueError("Respuesta no encontrada.")
-    
-    answer.likes += 1
-    session.commit()
-    return answer
+@answer_bp.route('/answers/<int:answer_id>/like', methods=['POST'])
+def like_answer_info(answer_id):
+    """
+    Incrementa los likes de una respuesta.
+    """
+    try:
+        liked_answer = like_answer(answer_id)
+        return jsonify({
+            "id": liked_answer.IDanswer,
+            "likes": liked_answer.likes
+        }), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
 
-# Obtener respuestas de un comentario (limitado a las 2 más recientes)
-def get_answers_by_comment(commentID, limit=2):
-    return (
-        session.query(AnswersComments)
-        .filter(AnswersComments.commentID == commentID)
-        .order_by(AnswersComments.fecha.desc())
-        .limit(limit)
-        .all()
-    )
+# Eliminar respuesta
+@answer_bp.route('/answers/<int:answer_id>', methods=['DELETE'])
+def delete_answer_info(answer_id):
+    """
+    Elimina una respuesta por su ID.
+    """
+    try:
+        delete_answer(answer_id)
+        return jsonify({"message": "Respuesta eliminada con éxito"}), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400

@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from backend.services.user_service import (
-    create_user, login_user, get_user_by_id, update_user, delete_user,get_all_users
+    create_user, login_user, get_user_by_id, update_user, delete_user, get_all_users
 )
 
 user_bp = Blueprint('user', __name__)
@@ -8,6 +8,9 @@ user_bp = Blueprint('user', __name__)
 # Registrar usuario
 @user_bp.route('/users', methods=['POST'])
 def register_user():
+    """
+    Registra un nuevo usuario.
+    """
     try:
         data = request.get_json()
         new_user = create_user(
@@ -26,6 +29,9 @@ def register_user():
 # Iniciar sesión
 @user_bp.route('/users/login', methods=['POST'])
 def login():
+    """
+    Permite a un usuario iniciar sesión.
+    """
     try:
         data = request.get_json()
         user = login_user(data['email'], data['password'])
@@ -40,6 +46,9 @@ def login():
 # Obtener usuario por ID
 @user_bp.route('/users/<int:user_id>', methods=['GET'])
 def get_user(user_id):
+    """
+    Obtiene un usuario por su ID.
+    """
     user = get_user_by_id(user_id)
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
@@ -52,6 +61,9 @@ def get_user(user_id):
 # Actualizar usuario
 @user_bp.route('/users/<int:user_id>', methods=['PUT'])
 def update_user_info(user_id):
+    """
+    Actualiza la información de un usuario.
+    """
     try:
         data = request.get_json()
         updated_user = update_user(
@@ -71,17 +83,23 @@ def update_user_info(user_id):
 # Eliminar usuario
 @user_bp.route('/users/<int:user_id>', methods=['DELETE'])
 def delete_user_info(user_id):
+    """
+    Elimina un usuario por su ID.
+    """
     try:
         delete_user(user_id)
         return jsonify({"message": "Usuario eliminado con éxito"}), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
-    
+
+# Listar todos los usuarios
 @user_bp.route('/users', methods=['GET'])
 def list_users():
+    """
+    Lista todos los usuarios registrados.
+    """
     users = get_all_users()  # Asegúrate de implementar esta función en `user_service.py`
     return jsonify([
         {"id": user.IDuser, "email": user.email, "avatar": user.avatar}
         for user in users
     ]), 200
-

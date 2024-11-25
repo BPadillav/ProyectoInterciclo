@@ -12,39 +12,65 @@ publicacion_bp = Blueprint('publicacion', __name__)
 # Crear una publicación
 @publicacion_bp.route('/publicaciones', methods=['POST'])
 def create():
+    """
+    Crea una nueva publicación.
+    """
     try:
         data = request.get_json()
         new_publicacion = create_publicacion(
-            ruta=data['ruta'],
+            rutaImagen=data['rutaImagen'],
             userPublicID=data['user_id'],
-            comentPublicID=data.get('coment_id'),
-            likePublicID=data.get('like_id'),
-            filtroPublicID=data.get('filtro_id')
+            contenido=data.get('contenido'),
+            filtroIDPublic=data.get('filtro_id')
         )
-        return jsonify({"id": new_publicacion.IDpublic, "ruta": new_publicacion.ruta}), 201
+        return jsonify({
+            "id": new_publicacion.IDpublic, 
+            "rutaImagen": new_publicacion.rutaImagen,
+            "contenido": new_publicacion.contenido,
+            "fecha": new_publicacion.fecha.strftime("%Y-%m-%d %H:%M:%S")
+        }), 201
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
 # Obtener todas las publicaciones de un usuario
 @publicacion_bp.route('/publicaciones/user/<int:user_id>', methods=['GET'])
 def get_user_publicaciones(user_id):
+    """
+    Obtiene todas las publicaciones de un usuario específico.
+    """
     publicaciones = get_publicaciones_by_user(user_id)
     return jsonify([
-        {"id": pub.IDpublic, "ruta": pub.ruta, "fecha": pub.fecha.strftime("%Y-%m-%d %H:%M:%S")}
+        {
+            "id": pub.IDpublic,
+            "rutaImagen": pub.rutaImagen,
+            "contenido": pub.contenido,
+            "fecha": pub.fecha.strftime("%Y-%m-%d %H:%M:%S")
+        }
         for pub in publicaciones
-    ])
+    ]), 200
 
 # Obtener una publicación por ID
 @publicacion_bp.route('/publicaciones/<int:public_id>', methods=['GET'])
 def get(public_id):
+    """
+    Obtiene una publicación por su ID.
+    """
     publicacion = get_publicacion_by_id(public_id)
     if not publicacion:
         return jsonify({"error": "Publicación no encontrada"}), 404
-    return jsonify({"id": publicacion.IDpublic, "ruta": publicacion.ruta, "fecha": publicacion.fecha.strftime("%Y-%m-%d %H:%M:%S")})
+    return jsonify({
+        "id": publicacion.IDpublic,
+        "rutaImagen": publicacion.rutaImagen,
+        "contenido": publicacion.contenido,
+        "fecha": publicacion.fecha.strftime("%Y-%m-%d %H:%M:%S")
+    }), 200
 
 # Eliminar una publicación
 @publicacion_bp.route('/publicaciones/<int:public_id>', methods=['DELETE'])
 def delete(public_id):
+    """
+    Elimina una publicación por su ID.
+    """
     try:
         delete_publicacion(public_id)
         return jsonify({"message": "Publicación eliminada con éxito"}), 200
@@ -54,15 +80,22 @@ def delete(public_id):
 # Actualizar una publicación
 @publicacion_bp.route('/publicaciones/<int:public_id>', methods=['PUT'])
 def update(public_id):
+    """
+    Actualiza una publicación existente.
+    """
     try:
         data = request.get_json()
         updated_publicacion = update_publicacion(
             public_id,
-            ruta=data.get('ruta'),
-            comentPublicID=data.get('coment_id'),
-            likePublicID=data.get('like_id'),
-            filtroPublicID=data.get('filtro_id')
+            rutaImagen=data.get('rutaImagen'),
+            contenido=data.get('contenido'),
+            filtroIDPublic=data.get('filtro_id')
         )
-        return jsonify({"id": updated_publicacion.IDpublic, "ruta": updated_publicacion.ruta}), 200
+        return jsonify({
+            "id": updated_publicacion.IDpublic,
+            "rutaImagen": updated_publicacion.rutaImagen,
+            "contenido": updated_publicacion.contenido,
+            "fecha": updated_publicacion.fecha.strftime("%Y-%m-%d %H:%M:%S")
+        }), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
