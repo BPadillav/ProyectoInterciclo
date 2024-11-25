@@ -1,0 +1,89 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Comentarios</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="comments-list">
+    <div class="comment-item" *ngFor="let comment of comments">
+      <!-- Comentario Principal -->
+      <ion-row>
+        <ion-col size="auto">
+          <ion-avatar>
+            <img [src]="comment.avatar" [alt]="comment.username">
+          </ion-avatar>
+        </ion-col>
+        <ion-col>
+          <div class="comment-header">
+            <span class="username">{{ comment.username }}</span>
+            <span class="time">{{ comment.time }}</span>
+          </div>
+          <div class="comment-body">
+            {{ comment.comment }}
+          </div>
+        </ion-col>
+        <ion-col size="auto" class="icon-col">
+          <div class="icon-and-likes">
+            <ion-icon name="heart-outline"></ion-icon>
+            <span class="likes">{{ comment.likes }}</span>
+          </div>
+        </ion-col>
+      </ion-row>
+      <div class="reply">
+        <span (click)="toggleReply(comment)">Responder</span>
+      </div>
+
+      <!-- Campo de Respuesta -->
+      <div class="reply-input" *ngIf="comment.isReplying">
+        <ion-item>
+          <ion-input [(ngModel)]="newReply" placeholder="Escribe una respuesta..."></ion-input>
+          <ion-button (click)="addReply(comment)">Enviar</ion-button>
+        </ion-item>
+      </div>
+
+      <!-- Respuestas -->
+      <div class="replies" *ngIf="comment.replies && comment.replies.length">
+        <div class="comment-item" *ngFor="let reply of comment.replies">
+          <ion-row>
+            <ion-col size="auto">
+              <ion-avatar class="avatar-xs">
+                <img [src]="reply.avatar" [alt]="reply.username">
+              </ion-avatar>
+            </ion-col>
+            <ion-col>
+              <div class="comment-header">
+                <span class="username">{{ reply.username }}</span>
+                <span class="time">{{ reply.time }}</span>
+              </div>
+              <div class="comment-body">
+                {{ reply.comment }}
+              </div>
+            </ion-col>
+            <ion-col size="auto" class="icon-col">
+              <div class="icon-and-likes">
+                <ion-icon name="heart-outline"></ion-icon>
+                <span class="likes">{{ reply.likes }}</span>
+              </div>
+            </ion-col>
+          </ion-row>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-avatar>
+        <img src="assets/img/avatars/7.jpg" alt="Your avatar">
+      </ion-avatar>
+    </ion-buttons>
+    <ion-input placeholder="Agrega un comentario..."></ion-input>
+  </ion-toolbar>
+</ion-footer>

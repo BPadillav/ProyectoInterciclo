@@ -1,0 +1,42 @@
+[
+    {
+      "id": 1,
+      "username": "spiderman",
+      "avatar": "assets/img/foto.jpeg",
+      "image": "assets/img/foto.jpeg",
+      "likes": 120,
+      "comments": [
+        {
+          "username": "ironman",
+          "comment": "Great pic!",
+          "avatar": "assets/img/foto.jpeg",
+          "time": "1h",
+          "likes": 15
+        },
+        {
+          "username": "hulk",
+          "comment": "Looks awesome!",
+          "avatar": "assets/img/foto.jpeg",
+          "time": "2h",
+          "likes": 8
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "username": "ironman",
+      "avatar": "assets/img/foto.jpeg",
+      "image": "assets/img/foto.jpeg",
+      "likes": 98,
+      "comments": [
+        {
+          "username": "thor",
+          "comment": "Love this!",
+          "avatar": "assets/img/foto.jpeg",
+          "time": "1h",
+          "likes": 5
+        }
+      ]
+    }
+  ]
+  

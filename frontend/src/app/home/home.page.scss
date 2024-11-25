@@ -1,0 +1,143 @@
+/* Historias */
+.story-list {
+  padding: 16px 0 8px;
+  border-bottom: 1px solid var(--ion-color-light);
+
+  .scroll-horizontal {
+    display: flex;
+    overflow-x: auto;
+    padding-left: 16px;
+  }
+
+  .scroll-item {
+    text-align: center;
+    margin-right: 16px;
+
+    .avatar-md {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 2px solid var(--ion-color-primary);
+    }
+
+    .item-label {
+      font-size: 13px;
+      margin-top: 8px;
+      color: var(--ion-text-color-medium);
+    }
+  }
+}
+
+/* Publicaciones */
+.post-item {
+  margin-bottom: 16px;
+  background-color: var(--ion-background-color);
+  border: 1px solid var(--ion-color-light);
+  border-radius: 8px;
+
+  .post-header {
+    padding: 8px;
+
+    ion-row {
+      align-items: center;
+
+      .avatar-sm {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+      }
+
+      ion-icon {
+        font-size: 20px;
+        color: var(--ion-text-color-medium);
+      }
+    }
+  }
+
+  .post-media {
+    font-size: 0;
+
+    img,
+    video {
+      width: 100%;
+      border-radius: 8px;
+    }
+  }
+
+  .post-actions {
+    padding: 8px 12px;
+
+    ion-button {
+      --padding-start: 0;
+      --padding-end: 0;
+      margin-right: 8px;
+    }
+
+    ion-icon {
+      font-size: 20px;
+    }
+  }
+
+  .post-stats {
+    padding: 0 12px 8px;
+    font-size: 14px;
+    font-weight: bold;
+  }
+
+  .post-comments {
+    padding: 0 12px 8px;
+    line-height: 1.4;
+
+    .username {
+      font-weight: 700;
+      margin-right: 4px;
+    }
+
+    .hash-tag {
+      text-decoration: none;
+      color: var(--ion-color-primary);
+      margin-right: 4px;
+    }
+
+    .comment-item {
+      margin-bottom: 4px;
+
+      &.reply {
+        margin: 4px 0 4px 16px;
+        padding-left: 8px;
+        border-left: 3px solid var(--ion-color-light);
+      }
+    }
+
+    .comment-expander {
+      margin: 8px 0;
+      color: var(--ion-text-color-medium);
+      font-size: 12px;
+    }
+
+    ion-icon {
+      vertical-align: middle;
+    }
+  }
+}
+
+/* Asegura que el ion-toolbar use flexbox */
+ion-toolbar {
+  display: flex;
+  align-items: center;
+}
+
+/* Ajusta la imagen para que encaje dentro del toolbar */
+.img-insta {
+  height: 24px;
+  /* Ajusta este valor según la altura deseada */
+  margin-left: 16px;
+  /* Espacio a la izquierda, ajusta según sea necesario */
+}
+
+/* Modo oscuro: invierte los colores de la imagen */
+@media (prefers-color-scheme: dark) {
+  .img-insta {
+    filter: invert(1);
+  }
+}

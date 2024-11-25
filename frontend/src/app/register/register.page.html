@@ -1,0 +1,56 @@
+<ion-header></ion-header>
+
+<ion-content class="ion-padding">
+  <main class="main-container">
+    <!-- Sección de registro -->
+    <section id="auth" class="auth-container">
+      <div class="panel register">
+        <!-- Logo de Instagram -->
+        <h1 class="logo-container">
+          <img class="img-insta" src="assets/instagram-logo.png" alt="Instagram logo" />
+        </h1>
+        <!-- Formulario de registro -->
+        <form (ngSubmit)="register()">
+          <ion-item>
+            <ion-label position="floating">Número de móvil o correo electrónico</ion-label>
+            <ion-input name="email" type="email" [(ngModel)]="email" required></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="floating">Contraseña</ion-label>
+            <ion-input name="password" type="password" [(ngModel)]="password" required></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="floating">Confirmar Contraseña</ion-label>
+            <ion-input name="confirmPassword" type="password" [(ngModel)]="confirmPassword" required></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="floating">Nombre completo</ion-label>
+            <ion-input name="fullName" [(ngModel)]="fullName" required></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="floating">Nombre de usuario</ion-label>
+            <ion-input name="username" [(ngModel)]="username" required></ion-input>
+          </ion-item>
+          <p class="terms">
+            Es posible que los usuarios de nuestro servicio hayan subido tu información de contacto en Instagram.
+            <a href="/register">Más información</a>
+          </p>
+          <p class="terms">
+            Al registrarte, aceptas nuestras <a href="/register">Condiciones</a>, nuestra
+            <a href="/register">Política de privacidad</a> y nuestra <a href="/register">Política de cookies</a>.
+          </p>
+          <ion-button expand="block" type="submit" color="primary">Registrarte</ion-button>
+        </form>
+        <!-- Enlace para iniciar sesión -->
+        <div class="">
+          
+        </div>
+      </div>
+
+      <div class="panel login-instead">
+        <p>¿Tienes una cuenta?</p>
+          <a href="#">Entrar</a>
+      </div>
+    </section>
+  </main>
+</ion-content>
