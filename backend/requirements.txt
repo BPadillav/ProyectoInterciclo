@@ -3,3 +3,4 @@ SQLAlchemy==2.0.9
 PyMySQL==1.0.2
 python-dotenv==1.0.0
 cryptography==41.0.3
+flask-cors==5.0.0  # Cambié la versión aquí
