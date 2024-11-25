@@ -1,4 +1,15 @@
+from flask import Flask
+from flask_cors import CORS  # Importa la extensión Flask-CORS
 from backend.app import create_app
+
+def create_app():
+    app = Flask(__name__)
+
+    # Aquí agregamos CORS a la aplicación
+    CORS(app)  # Esto habilita CORS para todas las rutas de la aplicación
+
+    # Otras configuraciones y rutas
+    return app
 
 app = create_app()
 

@@ -5,15 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash # type
 DEFAULT_AVATAR = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
 
 # Registrar usuario
-<<<<<<< HEAD
-def create_user(email, password, avatar=None):
-    """
-    Crea un nuevo usuario con correo electrónico, contraseña y avatar.
-    Si no se proporciona un avatar, se asignará uno predeterminado.
-    """
-=======
 def create_user(email, password, username, fullname,avatar=None):
->>>>>>> 2ff35bdba553a267ad0b75a7c13b9c0b249cd7d5
     # Verifica si el usuario ya existe
     existing_user = session.query(User).filter(User.email == email).first()
     if existing_user:
