@@ -14,6 +14,7 @@ export class PhotoPreviewPage implements OnInit {
   displayPhoto: string | undefined; // Foto actualmente mostrada (original o filtrada)
   showOriginal: boolean = true; // Estado para alternar entre original y filtro
   private baseUrl: string = '';
+  user: any | null = null;
 
   // Filtros estáticos disponibles
   filters = [
@@ -32,6 +33,7 @@ export class PhotoPreviewPage implements OnInit {
 
   ngOnInit() {
     this.baseUrl = localStorage.getItem('serverUrl') || 'http://localhost:5000';
+    this.user = JSON.parse(localStorage.getItem('authToken') || '{}');
 
     this.route.queryParams.subscribe((params) => {
       this.photo = params['photo'];
@@ -63,7 +65,7 @@ export class PhotoPreviewPage implements OnInit {
 
     try {
       const formData = new FormData();
-      formData.append('userIDPublic', '1');
+      formData.append('userIDPublic', this.user.IDuser);
       formData.append('contenido', 'Descripción de la foto');
       formData.append('filtroIDPublic', '1');
 
