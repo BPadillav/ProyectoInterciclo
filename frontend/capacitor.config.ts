@@ -3,7 +3,11 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'io.ionic.starter',
   appName: 'instagramClone',
-  webDir: 'www'
+  webDir: 'www',
+  server: {
+    cleartext: true,
+    allowNavigation: ['*'], // Permitir cualquier dominio
+  }
 };
 
 export default config;

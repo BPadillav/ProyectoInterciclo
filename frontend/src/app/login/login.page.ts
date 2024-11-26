@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { ToastController } from '@ionic/angular';
+import { ToastController, AlertController } from '@ionic/angular';
 import { Router } from '@angular/router';
 
 @Component({
@@ -11,26 +11,61 @@ import { Router } from '@angular/router';
 export class LoginPage implements OnInit {
   email: string = '';
   password: string = '';
-  private baseUrl: string = 'http://localhost:5000'; // Cambia esta URL si está en producción
+  baseUrl: string = localStorage.getItem('serverUrl') || 'http://localhost:5000'; // Obtiene la URL del servidor desde localStorage o usa la URL por defecto
 
   constructor(
     private http: HttpClient,
     private toastController: ToastController,
+    private alertController: AlertController,
     private router: Router
   ) {}
 
   ngOnInit() {}
 
+  // Método para mostrar notificaciones tipo Toast
   async showToast(message: string, color: string = 'dark') {
     const toast = await this.toastController.create({
       message,
-      duration: 2000, // 2 segundos
+      duration: 2000, // Duración de 2 segundos
       position: 'bottom',
-      color, // Puedes usar colores como 'success', 'danger', 'warning', etc.
+      color, // Colores: 'success', 'danger', 'warning', etc.
     });
     await toast.present();
   }
 
+  // Método para configurar la URL del servidor
+  async configureServerUrl() {
+    const alert = await this.alertController.create({
+      header: 'Configurar Servidor',
+      inputs: [
+        {
+          name: 'serverUrl',
+          type: 'text',
+          placeholder: 'http://localhost:5000',
+          value: this.baseUrl, // Valor actual como predeterminado
+        },
+      ],
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+        },
+        {
+          text: 'Guardar',
+          handler: (data) => {
+            if (data.serverUrl) {
+              this.baseUrl = data.serverUrl;
+              localStorage.setItem('serverUrl', this.baseUrl); // Guarda la URL en localStorage
+              this.showToast('Servidor actualizado', 'success');
+            }
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  // Método de inicio de sesión
   login() {
     if (!this.email || !this.password) {
       this.showToast('Correo electrónico y contraseña son requeridos', 'danger');
@@ -44,18 +79,18 @@ export class LoginPage implements OnInit {
 
     this.http.post(`${this.baseUrl}/users/login`, loginData).subscribe({
       next: (response: any) => {
-        console.log('Inicio de sesión exitoso:', response);
-
-        // Guarda el token u otra información si es necesario
-        localStorage.setItem('authToken', 'fake-token'); // Cambiar por el token real si se utiliza
-        localStorage.setItem('userId', response.IDuser);
-
-        this.showToast('Inicio de sesión exitoso', 'success');
-        this.router.navigate(['/tabs/home']); // Redirige a la página principal
+        if (response.valid === 'true') {
+          localStorage.setItem('authToken', JSON.stringify(response));
+          localStorage.setItem('userId', response.IDuser);
+          this.showToast('Inicio de sesión exitoso', 'success');
+          this.router.navigate(['/tabs/home']); // Redirige a la página principal
+        } else {
+          this.showToast(response.message || 'Credenciales incorrectas', 'danger');
+        }
       },
       error: (err) => {
         console.error('Error al iniciar sesión:', err);
-        this.showToast('Credenciales incorrectas', 'danger');
+        this.showToast('Error al iniciar sesión, verifica tus credenciales', 'danger');
       },
     });
   }

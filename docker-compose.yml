@@ -6,8 +6,17 @@ services:
     container_name: flask_backend
     ports:
       - "5000:5000"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]  # Habilita el uso de GPU
     environment:
       - DATABASE_URL=mysql+pymysql://root:1234@mysql:3306/instagram
+      - NVIDIA_VISIBLE_DEVICES=all  # Configura la visibilidad de GPU
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
     depends_on:
       - mysql
     volumes:
@@ -15,6 +24,7 @@ services:
       - ./run.py:/app/run.py
       - ./cert.pem:/app/cert.pem
       - ./key.pem:/app/key.pem
+      - ./uploads:/app/uploads  # Volumen persistente para las imágenes subidas
     entrypoint: >
       sh -c "
       while ! nc -z mysql 3306; do
@@ -41,6 +51,7 @@ services:
 
 volumes:
   mysql_data:
+  uploads:  # Volumen para las imágenes subidas
 
 networks:
   flask_network:

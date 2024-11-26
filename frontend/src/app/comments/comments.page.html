@@ -40,7 +40,7 @@
       <!-- Campo de Respuesta -->
       <div class="reply-input" *ngIf="comment.isReplying">
         <ion-item>
-          <ion-input [(ngModel)]="newReply" placeholder="Escribe una respuesta..."></ion-input>
+          <ion-input [(ngModel)]="comment.newReply" placeholder="Escribe una respuesta..."></ion-input>
           <ion-button (click)="addReply(comment)">Enviar</ion-button>
         </ion-item>
       </div>
@@ -76,7 +76,6 @@
   </div>
 </ion-content>
 
-
 <ion-footer>
   <ion-toolbar>
     <ion-buttons slot="start">
@@ -84,6 +83,9 @@
         <img src="assets/img/avatars/7.jpg" alt="Your avatar">
       </ion-avatar>
     </ion-buttons>
-    <ion-input placeholder="Agrega un comentario..."></ion-input>
+    <ion-input [(ngModel)]="newComment" placeholder="Agrega un comentario..."></ion-input>
+    <ion-buttons slot="end">
+      <ion-button (click)="addComment()">Enviar</ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-footer>

@@ -21,6 +21,7 @@ def register_user():
             avatar=data.get('avatar')  # Avatar opcional
         )
         return jsonify({
+            "valid": 'true',
             "id": new_user.IDuser, 
             "email": new_user.email,
             "username": new_user.username,
@@ -28,7 +29,7 @@ def register_user():
             "avatar": new_user.avatar
         }), 201
     except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"valid": 'false',"error": str(e)}), 400
 
 # Iniciar sesión
 @user_bp.route('/users/login', methods=['POST'])

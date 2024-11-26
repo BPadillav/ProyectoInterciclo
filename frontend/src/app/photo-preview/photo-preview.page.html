@@ -30,10 +30,11 @@
 
   <!-- Selector de Filtros -->
   <div class="filters">
-    <div class="filter-item" *ngFor="let filter of filters" (click)="applyFilter(filter)">
-      <div class="filter-preview">
-        <img [src]="displayPhoto" [style.filter]="filter.value" alt="Filtro {{ filter.name }}">
-      </div>
+    <div
+      class="filter-item"
+      *ngFor="let filter of filters"
+      (click)="applyFilterToPhoto(filter)"
+    >
       <span>{{ filter.name }}</span>
     </div>
   </div>

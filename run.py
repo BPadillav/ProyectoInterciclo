@@ -2,9 +2,17 @@ from flask import Flask
 from flask_cors import CORS
 from backend.database.init_db import init_db  # Importa init_db
 from backend.app.routes import register_routes  # Importa las rutas correctamente
+from werkzeug.utils import secure_filename
+import os
+
+UPLOAD_FOLDER = './uploads'
+PROCESSED_FOLDER = './uploads/processed'
+
 
 def create_app():
     app = Flask(__name__)
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Asegúrate de que el directorio exista
 
     # Habilita CORS para todas las rutas de la aplicación
     CORS(app, resources={r"/*": {"origins": "*"}})  # Permite solicitudes desde cualquier origen
