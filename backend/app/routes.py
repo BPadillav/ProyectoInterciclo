@@ -1,6 +1,9 @@
 from flask import request, jsonify
 from backend.database.init_db import get_db  # Asegúrate de importar get_db correctamente
 from backend.database.models import User, Comments, Likes, Filtros, Publicaciones, AnswersComments
+from sqlalchemy.orm import joinedload
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 def register_routes(app):
     """
@@ -120,6 +123,37 @@ def register_routes(app):
 
         return jsonify(user_list), 200
 
+    @app.route('/users/login', methods=['POST'])
+    def login():
+        """
+        Permite a un usuario iniciar sesión.
+        """
+        data = request.get_json()  # Obtiene los datos JSON del cuerpo de la solicitud
+        db = next(get_db())  # Obtiene la sesión de la base de datos
+
+        # Verifica si los campos requeridos están presentes
+        if not data.get('email') or not data.get('password'):
+            return jsonify({'message': 'Correo electrónico y contraseña son requeridos'}), 400
+
+        # Buscar al usuario en la base de datos
+        user = db.query(User).filter(User.email == data['email']).first()
+        if not user:
+            return jsonify({'message': 'Credenciales incorrectas'}), 200
+
+        # Verifica la contraseña directamente
+        if user.password != data['password']:
+            return jsonify({'message': 'Credenciales incorrectas'}), 200
+
+        # Retorna los datos del usuario si las credenciales son correctas
+        return jsonify({
+            "IDuser": user.IDuser,
+            "email": user.email,
+            "username": user.username,
+            "fullname": user.fullname,
+            "avatar": user.avatar
+        }), 200
+
+
 
 
 #FILTROS******************************************************************
@@ -201,7 +235,10 @@ def register_routes(app):
 
 
 #PUBLICACIONES*****************************************************
+ 
 
+
+# PUBLICACIONES *****************************************************
 
     @app.route('/create_publicacion', methods=['POST'])
     def create_publicacion():
@@ -220,20 +257,21 @@ def register_routes(app):
         if not usuario:
             return jsonify({"message": "Usuario no encontrado"}), 404
 
-        # Verificar si existe el filtro (si se proporcionó)
-        filtro = db.query(Filtros).filter_by(IDfiltro=data.get('filtroIDPublic')).first() if data.get('filtroIDPublic') else None
-
         # Crear la publicación
         publicacion = Publicaciones(
             rutaImagen=data.get('rutaImagen'),
             contenido=data.get('contenido'),
-            userIDPublic=data['userIDPublic'],
-            filtroIDPublic=filtro.IDfiltro if filtro else None
+            userIDPublic=data['userIDPublic']
         )
         db.add(publicacion)
         db.commit()
 
-        return jsonify({"message": "Publicación creada exitosamente", "publicacion_id": publicacion.IDpublic}), 201
+        return jsonify({
+            "message": "Publicación creada exitosamente",
+            "publicacion_id": publicacion.IDpublic
+        }), 201
+
+
 
 
 
@@ -241,27 +279,51 @@ def register_routes(app):
     @app.route('/list_publicaciones', methods=['GET'])
     def list_publicaciones():
         """
-        Listar todas las publicaciones con detalles de usuario y filtro.
+        Listar todas las publicaciones con detalles de usuario, total de likes, avatar del usuario y los primeros dos comentarios.
         """
         db = next(get_db())  # Obtiene la sesión de base de datos
-        publicaciones = db.query(Publicaciones).all()
+
+        # Cargar las relaciones necesarias
+        publicaciones = db.query(Publicaciones).options(
+            joinedload(Publicaciones.usuario),
+            joinedload(Publicaciones.likes),
+            joinedload(Publicaciones.comentarios).joinedload(Comments.usuario)
+        ).all()
 
         # Estructura de salida
-        publicacion_list = [
-            {
+        publicacion_list = []
+        for publicacion in publicaciones:
+            # Obtener los primeros dos comentarios
+            primeros_comentarios = publicacion.comentarios[:2]
+
+            # Formatear los comentarios
+            comentarios_list = [
+                {
+                    "IDcomments": comentario.IDcomments,
+                    "contenido": comentario.contenido,
+                    "fecha": comentario.fecha.strftime("%Y-%m-%d %H:%M:%S"),
+                    "userIDComment": comentario.userIDComment,
+                    "usuario": comentario.usuario.email,
+                    "avatar": comentario.usuario.avatar
+                }
+                for comentario in primeros_comentarios
+            ]
+
+            publicacion_list.append({
                 "IDpublic": publicacion.IDpublic,
                 "rutaImagen": publicacion.rutaImagen,
                 "contenido": publicacion.contenido,
                 "fecha": publicacion.fecha.strftime("%Y-%m-%d %H:%M:%S"),
                 "userIDPublic": publicacion.userIDPublic,
                 "usuario": publicacion.usuario.email,
-                "filtroIDPublic": publicacion.filtroIDPublic,
-                "filtro": publicacion.filtro.nombreFiltro if publicacion.filtro else None,
-            }
-            for publicacion in publicaciones
-        ]
+                "avatar": publicacion.usuario.avatar,
+                "likes": len(publicacion.likes),  # Total de likes de la publicación
+                "comentarios": comentarios_list
+            })
 
         return jsonify(publicacion_list), 200
+
+
 
 
     @app.route('/update_publicacion/<int:public_id>', methods=['PUT'])
@@ -282,12 +344,6 @@ def register_routes(app):
             publicacion.rutaImagen = data['rutaImagen']
         if 'contenido' in data:
             publicacion.contenido = data['contenido']
-        if 'filtroIDPublic' in data:
-            filtro = db.query(Filtros).filter_by(IDfiltro=data['filtroIDPublic']).first()
-            if filtro:
-                publicacion.filtroIDPublic = filtro.IDfiltro
-            else:
-                return jsonify({"message": "Filtro no encontrado"}), 404
 
         db.commit()
 
@@ -339,7 +395,6 @@ def register_routes(app):
         # Crear el comentario
         comentario = Comments(
             contenido=data['contenido'],
-            image=data.get('image'),
             publicIDComment=data['publicIDComment'],
             userIDComment=data['userIDComment']
         )
@@ -560,33 +615,48 @@ def register_routes(app):
 # LIKES ******************************************************************
 
     @app.route('/create_like', methods=['POST'])
-    def create_like():
+    def create_like_route():
         """
         Crear un nuevo like asociado a una publicación, comentario o respuesta.
         """
         data = request.get_json()
-        db = next(get_db())  # Obtiene la sesión de base de datos
+        db = next(get_db())
 
-        # Validar que los datos necesarios estén presentes
-        if not any(key in data for key in ['publicIDLike', 'commentIDLike', 'answerIDLike']) or 'userIDLike' not in data:
-            return jsonify({"message": "Faltan datos obligatorios"}), 400
+        # Validar que exactamente uno de los IDs de destino esté presente
+        destino_keys = ['publicIDLike', 'commentIDLike', 'answerIDLike']
+        destino_present = [key for key in destino_keys if data.get(key)]
+        if 'userIDLike' not in data or len(destino_present) != 1:
+            return jsonify({"message": "Debe proporcionar 'userIDLike' y exactamente uno de 'publicIDLike', 'commentIDLike' o 'answerIDLike'"}), 400
 
         # Verificar la existencia del usuario
         usuario = db.query(User).filter_by(IDuser=data['userIDLike']).first()
         if not usuario:
             return jsonify({"message": "Usuario no encontrado"}), 404
 
-        # Verificar si la publicación, comentario o respuesta existen
-        publicacion = db.query(Publicaciones).filter_by(IDpublic=data.get('publicIDLike')).first() if data.get('publicIDLike') else None
-        comentario = db.query(Comments).filter_by(IDcomments=data.get('commentIDLike')).first() if data.get('commentIDLike') else None
-        respuesta = db.query(AnswersComments).filter_by(IDanswer=data.get('answerIDLike')).first() if data.get('answerIDLike') else None
+        # Verificar si el objeto existe
+        destino_key = destino_present[0]
+        if destino_key == 'publicIDLike':
+            objeto = db.query(Publicaciones).filter_by(IDpublic=data['publicIDLike']).first()
+            if not objeto:
+                return jsonify({"message": "Publicación no encontrada"}), 404
+        elif destino_key == 'commentIDLike':
+            objeto = db.query(Comments).filter_by(IDcomments=data['commentIDLike']).first()
+            if not objeto:
+                return jsonify({"message": "Comentario no encontrado"}), 404
+        elif destino_key == 'answerIDLike':
+            objeto = db.query(AnswersComments).filter_by(IDanswer=data['answerIDLike']).first()
+            if not objeto:
+                return jsonify({"message": "Respuesta no encontrada"}), 404
 
-        if data.get('publicIDLike') and not publicacion:
-            return jsonify({"message": "Publicación no encontrada"}), 404
-        if data.get('commentIDLike') and not comentario:
-            return jsonify({"message": "Comentario no encontrado"}), 404
-        if data.get('answerIDLike') and not respuesta:
-            return jsonify({"message": "Respuesta no encontrada"}), 404
+        # Verificar si el usuario ya dio like al objeto
+        existing_like = db.query(Likes).filter(
+            Likes.userIDLike == data['userIDLike'],
+            Likes.publicIDLike == data.get('publicIDLike'),
+            Likes.commentIDLike == data.get('commentIDLike'),
+            Likes.answerIDLike == data.get('answerIDLike')
+        ).first()
+        if existing_like:
+            return jsonify({"message": "El usuario ya ha dado like a este elemento"}), 400
 
         # Crear el like
         like = Likes(
@@ -604,10 +674,24 @@ def register_routes(app):
     @app.route('/list_likes', methods=['GET'])
     def list_likes():
         """
-        Listar todos los likes con detalles de usuario, publicación, comentario y respuesta.
+        Listar likes con detalles de usuario, publicación, comentario y respuesta.
+        Permite filtrar por 'publicIDLike', 'commentIDLike' o 'answerIDLike'.
         """
-        db = next(get_db())  # Obtiene la sesión de base de datos
-        likes = db.query(Likes).all()
+        db = next(get_db())
+        public_id = request.args.get('publicIDLike', type=int)
+        comment_id = request.args.get('commentIDLike', type=int)
+        answer_id = request.args.get('answerIDLike', type=int)
+
+        query = db.query(Likes)
+
+        if public_id:
+            query = query.filter(Likes.publicIDLike == public_id)
+        if comment_id:
+            query = query.filter(Likes.commentIDLike == comment_id)
+        if answer_id:
+            query = query.filter(Likes.answerIDLike == answer_id)
+
+        likes = query.all()
 
         # Estructura de salida
         like_list = [
@@ -626,6 +710,7 @@ def register_routes(app):
         ]
 
         return jsonify(like_list), 200
+
 
 
     @app.route('/update_like/<int:like_id>', methods=['PUT'])
@@ -685,3 +770,85 @@ def register_routes(app):
         db.commit()
 
         return jsonify({"message": "Like eliminado exitosamente"}), 200
+#************************************
+    @app.route('/comments/<int:public_id>', methods=['GET'])
+    def list_comments_and_replies(public_id):
+        """
+        Lista todos los comentarios y sus respuestas para una publicación específica.
+        Incluye los IDs de los comentarios y respuestas.
+        """
+        db = next(get_db())  # Obtiene la sesión de base de datos
+
+        # Verificar si la publicación existe
+        publicacion = db.query(Publicaciones).filter_by(IDpublic=public_id).first()
+        if not publicacion:
+            return jsonify({"message": "Publicación no encontrada"}), 404
+
+        # Cargar los comentarios y sus respuestas, junto con los usuarios y likes
+        comentarios = db.query(Comments).options(
+            joinedload(Comments.usuario),
+            joinedload(Comments.likes),
+            joinedload(Comments.respuestas).joinedload(AnswersComments.usuario),
+            joinedload(Comments.respuestas).joinedload(AnswersComments.likes)
+        ).filter_by(publicIDComment=public_id).all()
+
+        # Ordenar los comentarios por fecha ascendente (opcional)
+        comentarios.sort(key=lambda x: x.fecha)
+
+        # Formatear los comentarios
+        comentarios_list = []
+        for comentario in comentarios:
+            comentario_data = {
+                "IDcomments": comentario.IDcomments,  # Agregado el ID del comentario
+                "username": comentario.usuario.username,
+                "avatar": comentario.usuario.avatar,
+                "comment": comentario.contenido,
+                "time": calculate_time_ago(comentario.fecha),
+                "likes": len(comentario.likes),
+                "replies": [],
+                "isReplying": False
+            }
+
+            # Formatear las respuestas
+            respuestas_ordenadas = sorted(comentario.respuestas, key=lambda x: x.fecha)
+            for respuesta in respuestas_ordenadas:
+                respuesta_data = {
+                    "IDanswer": respuesta.IDanswer,  # Agregado el ID de la respuesta
+                    "username": respuesta.usuario.username,
+                    "avatar": respuesta.usuario.avatar,
+                    "comment": respuesta.contenido,
+                    "time": calculate_time_ago(respuesta.fecha),
+                    "likes": len(respuesta.likes)
+                }
+                comentario_data["replies"].append(respuesta_data)
+
+            comentarios_list.append(comentario_data)
+
+        # Estructurar la respuesta con el ID de la publicación como clave
+        response = {
+            str(public_id): comentarios_list
+        }
+
+        return jsonify(response), 200
+    def calculate_time_ago(fecha):
+        """
+        Calcula el tiempo transcurrido desde la fecha dada hasta ahora y lo devuelve en formato legible.
+        """
+        ahora = datetime.utcnow()
+        diferencia = relativedelta(ahora, fecha)
+
+        if diferencia.years > 0:
+            return f"{diferencia.years} año{'s' if diferencia.years > 1 else ''}"
+        elif diferencia.months > 0:
+            return f"{diferencia.months} mes{'es' if diferencia.months > 1 else ''}"
+        elif diferencia.days >= 7:
+            semanas = diferencia.days // 7
+            return f"{semanas} sem"
+        elif diferencia.days > 0:
+            return f"{diferencia.days} día{'s' if diferencia.days > 1 else ''}"
+        elif diferencia.hours > 0:
+            return f"{diferencia.hours} hora{'s' if diferencia.hours > 1 else ''}"
+        elif diferencia.minutes > 0:
+            return f"{diferencia.minutes} min"
+        else:
+            return "Justo ahora"

@@ -5,7 +5,6 @@ from backend.services.like_service import (
 
 like_bp = Blueprint('like', __name__)
 
-# Crear like
 @like_bp.route('/likes', methods=['POST'])
 def register_like():
     """
@@ -13,6 +12,14 @@ def register_like():
     """
     try:
         data = request.get_json()
+        # Validación de 'user_id'
+        if 'user_id' not in data:
+            return jsonify({"error": "El campo 'user_id' es obligatorio"}), 400
+
+        # Validación de al menos un ID de destino
+        if not any([data.get('public_id'), data.get('comment_id'), data.get('answer_id')]):
+            return jsonify({"error": "Debe proporcionar 'public_id', 'comment_id' o 'answer_id'"}), 400
+
         new_like = create_like(
             userIDLike=data['user_id'],
             publicIDLike=data.get('public_id'),
@@ -29,7 +36,8 @@ def register_like():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
-# Obtener like por ID
+
+
 @like_bp.route('/likes/<int:like_id>', methods=['GET'])
 def get_like(like_id):
     """
@@ -44,9 +52,9 @@ def get_like(like_id):
         "public_id": like.publicIDLike,
         "comment_id": like.commentIDLike,
         "answer_id": like.answerIDLike
-    })
+    }), 200
 
-# Obtener likes por destino
+
 @like_bp.route('/likes', methods=['GET'])
 def get_likes_by_target():
     """
@@ -55,6 +63,10 @@ def get_likes_by_target():
     public_id = request.args.get('public_id', type=int)
     comment_id = request.args.get('comment_id', type=int)
     answer_id = request.args.get('answer_id', type=int)
+
+    # Validación de al menos un parámetro
+    if not any([public_id, comment_id, answer_id]):
+        return jsonify({"error": "Debe proporcionar 'public_id', 'comment_id' o 'answer_id' como parámetro de consulta"}), 400
 
     likes = get_likes(publicIDLike=public_id, commentIDLike=comment_id, answerIDLike=answer_id)
 
@@ -69,7 +81,6 @@ def get_likes_by_target():
         for like in likes
     ]), 200
 
-# Eliminar like
 @like_bp.route('/likes/<int:like_id>', methods=['DELETE'])
 def delete_like_info(like_id):
     """
@@ -79,4 +90,8 @@ def delete_like_info(like_id):
         delete_like(like_id)
         return jsonify({"message": "Like eliminado con éxito"}), 200
     except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+        error_message = str(e)
+        if error_message == "Like no encontrado.":
+            return jsonify({"error": error_message}), 404
+        else:
+            return jsonify({"error": error_message}), 400

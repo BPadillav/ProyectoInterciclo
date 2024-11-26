@@ -29,9 +29,9 @@ class Filtros(Base):
     IDfiltro = Column(Integer, primary_key=True, autoincrement=True)
     nombreFiltro = Column(String(255), nullable=False)
 
-    publicaciones = relationship("Publicaciones", back_populates="filtro")
 
 
+# Tabla Publicaciones
 # Tabla Publicaciones
 class Publicaciones(Base):
     __tablename__ = "publicaciones"
@@ -41,15 +41,14 @@ class Publicaciones(Base):
     contenido = Column(Text, nullable=True)  # Contenido de texto asociado a la publicación
     fecha = Column(DateTime, default=datetime.utcnow)  # Fecha de creación de la publicación
 
-    # Foreign Keys
+    # Foreign Key
     userIDPublic = Column(Integer, ForeignKey("users.IDuser"), nullable=False)  # Usuario que hizo la publicación
-    filtroIDPublic = Column(Integer, ForeignKey("filtros.IDfiltro"), nullable=True)  # Filtro asociado (si aplica)
 
     # Relationships
     usuario = relationship("User", back_populates="publicaciones")
     comentarios = relationship("Comments", back_populates="publicacion")
     likes = relationship("Likes", back_populates="publicacion")
-    filtro = relationship("Filtros", back_populates="publicaciones")
+
 
 
 # Tabla Comments
@@ -58,7 +57,6 @@ class Comments(Base):
 
     IDcomments = Column(Integer, primary_key=True, autoincrement=True)
     contenido = Column(Text, nullable=False)
-    image = Column(String(255), nullable=True)  # Imagen opcional para el comentario
     fecha = Column(DateTime, default=datetime.utcnow)  # Fecha del comentario
 
     # Foreign Keys
@@ -86,7 +84,7 @@ class AnswersComments(Base):
 
     # Relationships
     comentario = relationship("Comments", back_populates="respuestas")
-    usuario = relationship("User", back_populates="respuestas")
+    usuario = relationship("User", back_populates="respuestas")  # Cambiado a "respuestas"
     likes = relationship("Likes", back_populates="respuesta")
 # Tabla Likes
 class Likes(Base):

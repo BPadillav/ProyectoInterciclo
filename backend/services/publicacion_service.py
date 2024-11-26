@@ -1,23 +1,19 @@
 from backend.database.models import Publicaciones
 from database.__init__ import db as session
 
-# Crear publicación
-def create_publicacion(rutaImagen, userPublicID, contenido=None, filtroIDPublic=None):
+def create_publicacion(userPublicID, rutaImagen=None, contenido=None):
     """
     Crea una nueva publicación asociada a un usuario.
     """
-    if not rutaImagen:
-        raise ValueError("La ruta de la imagen es obligatoria.")
-    
     new_publicacion = Publicaciones(
         rutaImagen=rutaImagen,
         contenido=contenido,
         userIDPublic=userPublicID,
-        filtroIDPublic=filtroIDPublic
     )
     session.add(new_publicacion)
     session.commit()
     return new_publicacion
+
 
 # Obtener publicaciones de un usuario
 def get_publicaciones_by_user(user_id):
@@ -33,8 +29,7 @@ def get_publicacion_by_id(publicacion_id):
     """
     return session.query(Publicaciones).filter(Publicaciones.IDpublic == publicacion_id).first()
 
-# Actualizar publicación
-def update_publicacion(publicacion_id, rutaImagen=None, contenido=None, filtroIDPublic=None):
+def update_publicacion(publicacion_id, rutaImagen=None, contenido=None):
     """
     Actualiza la información de una publicación.
     """
@@ -42,15 +37,15 @@ def update_publicacion(publicacion_id, rutaImagen=None, contenido=None, filtroID
     if not publicacion:
         raise ValueError("La publicación no fue encontrada.")
     
-    if rutaImagen:
+    if rutaImagen is not None:
         publicacion.rutaImagen = rutaImagen
-    if contenido:
+    if contenido is not None:
         publicacion.contenido = contenido
-    if filtroIDPublic:
-        publicacion.filtroIDPublic = filtroIDPublic
+    
 
     session.commit()
     return publicacion
+
 
 # Eliminar publicación
 def delete_publicacion(publicacion_id):

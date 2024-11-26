@@ -1,5 +1,6 @@
 from backend.database.models import Likes
 from database.__init__ import db as session
+from backend.database.models import User, Publicaciones, Comments, AnswersComments
 
 # Crear like
 def create_like(userIDLike, publicIDLike=None, commentIDLike=None, answerIDLike=None):
@@ -13,6 +14,36 @@ def create_like(userIDLike, publicIDLike=None, commentIDLike=None, answerIDLike=
     if not (publicIDLike or commentIDLike or answerIDLike):
         raise ValueError("El like debe estar asociado a una publicación, comentario o respuesta.")
 
+    # Verificar que el usuario existe
+    usuario = session.query(User).filter_by(IDuser=userIDLike).first()
+    if not usuario:
+        raise ValueError("Usuario no encontrado.")
+
+    # Verificar que el objeto al que se le da el like existe
+    if publicIDLike:
+        objeto = session.query(Publicaciones).filter_by(IDpublic=publicIDLike).first()
+        if not objeto:
+            raise ValueError("Publicación no encontrada.")
+    elif commentIDLike:
+        objeto = session.query(Comments).filter_by(IDcomments=commentIDLike).first()
+        if not objeto:
+            raise ValueError("Comentario no encontrado.")
+    elif answerIDLike:
+        objeto = session.query(AnswersComments).filter_by(IDanswer=answerIDLike).first()
+        if not objeto:
+            raise ValueError("Respuesta no encontrada.")
+
+    # Verificar si el usuario ya dio like al objeto
+    existing_like = session.query(Likes).filter(
+        Likes.userIDLike == userIDLike,
+        Likes.publicIDLike == publicIDLike,
+        Likes.commentIDLike == commentIDLike,
+        Likes.answerIDLike == answerIDLike
+    ).first()
+    if existing_like:
+        raise ValueError("El usuario ya ha dado like a este elemento.")
+
+    # Crear el like
     new_like = Likes(
         userIDLike=userIDLike,
         publicIDLike=publicIDLike,
@@ -23,6 +54,7 @@ def create_like(userIDLike, publicIDLike=None, commentIDLike=None, answerIDLike=
     session.add(new_like)
     session.commit()
     return new_like
+
 
 # Obtener like por ID
 def get_like_by_id(like_id):

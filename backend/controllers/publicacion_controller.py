@@ -18,14 +18,11 @@ def create():
     try:
         data = request.get_json()
         new_publicacion = create_publicacion(
-            rutaImagen=data['rutaImagen'],
             userPublicID=data['user_id'],
             contenido=data.get('contenido'),
-            filtroIDPublic=data.get('filtro_id')
         )
         return jsonify({
             "id": new_publicacion.IDpublic, 
-            "rutaImagen": new_publicacion.rutaImagen,
             "contenido": new_publicacion.contenido,
             "fecha": new_publicacion.fecha.strftime("%Y-%m-%d %H:%M:%S")
         }), 201
@@ -42,7 +39,6 @@ def get_user_publicaciones(user_id):
     return jsonify([
         {
             "id": pub.IDpublic,
-            "rutaImagen": pub.rutaImagen,
             "contenido": pub.contenido,
             "fecha": pub.fecha.strftime("%Y-%m-%d %H:%M:%S")
         }
@@ -60,7 +56,6 @@ def get(public_id):
         return jsonify({"error": "Publicación no encontrada"}), 404
     return jsonify({
         "id": publicacion.IDpublic,
-        "rutaImagen": publicacion.rutaImagen,
         "contenido": publicacion.contenido,
         "fecha": publicacion.fecha.strftime("%Y-%m-%d %H:%M:%S")
     }), 200
@@ -87,13 +82,10 @@ def update(public_id):
         data = request.get_json()
         updated_publicacion = update_publicacion(
             public_id,
-            rutaImagen=data.get('rutaImagen'),
             contenido=data.get('contenido'),
-            filtroIDPublic=data.get('filtro_id')
         )
         return jsonify({
             "id": updated_publicacion.IDpublic,
-            "rutaImagen": updated_publicacion.rutaImagen,
             "contenido": updated_publicacion.contenido,
             "fecha": updated_publicacion.fecha.strftime("%Y-%m-%d %H:%M:%S")
         }), 200
