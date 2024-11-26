@@ -3,7 +3,6 @@ from database.__init__ import db as session
 
 # Crear comentario
 def create_comment(contenido=None, image=None):
-    # Validar que al menos uno de los campos esté lleno
     if not contenido and not image:
         raise ValueError("El comentario debe tener contenido o una imagen.")
 
@@ -23,11 +22,9 @@ def update_comment(comment_id, contenido=None, image=None):
     if not comment:
         raise ValueError("Comentario no encontrado.")
 
-    # Validar que al menos uno de los campos esté lleno
     if not contenido and not image:
         raise ValueError("El comentario debe tener contenido o una imagen.")
 
-    # Actualizar los campos proporcionados
     comment.contenido = contenido or comment.contenido
     comment.image = image or comment.image
     session.commit()

@@ -3,7 +3,6 @@ from database.__init__ import db as session
 
 # Crear like
 def create_like(nombrelike):
-    # Crea un nuevo like
     new_like = Likes(nombrelike=nombrelike)
     session.add(new_like)
     session.commit()

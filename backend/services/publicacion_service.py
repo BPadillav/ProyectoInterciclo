@@ -29,7 +29,7 @@ def get_publicacion_by_id(publicacion_id):
 def update_publicacion(publicacion_id, ruta=None, comentPublicID=None, likePublicID=None, filtroPublicID=None):
     publicacion = session.query(Publicaciones).filter(Publicaciones.IDpublic == publicacion_id).first()
     if not publicacion:
-        raise ValueError("Publicación no encontrada.")
+        raise ValueError("La publicación no fue encontrada.")
     
     if ruta:
         publicacion.ruta = ruta

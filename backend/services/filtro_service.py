@@ -3,7 +3,7 @@ from database.__init__ import db as session
 
 # Crear filtro
 def create_filtro(nombreFiltro):
-    # Crea un nuevo filtro
+
     new_filtro = Filtros(nombreFiltro=nombreFiltro)
     session.add(new_filtro)
     session.commit()
