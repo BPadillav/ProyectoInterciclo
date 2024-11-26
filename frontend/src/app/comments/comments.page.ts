@@ -134,7 +134,7 @@ export class CommentsPage implements OnInit {
       commentIDLike: comment.IDcomments, // ID del comentario que recibe el like
     };
   
-    this.http.post(`${this.baseUrl}/like_comment`, body).subscribe({
+    this.http.post(`${this.baseUrl}/create_like`, body).subscribe({
       next: (response: any) => {
         console.log('Like al comentario registrado:', response);
         comment.likes += 1; // Incrementar el contador de likes en el comentario
@@ -153,7 +153,7 @@ export class CommentsPage implements OnInit {
       answerIDLike: reply.IDanswer, // ID de la respuesta que recibe el like
     };
   
-    this.http.post(`${this.baseUrl}/like_comment`, body).subscribe({
+    this.http.post(`${this.baseUrl}/create_like`, body).subscribe({
       next: (response: any) => {
         console.log('Like a la respuesta registrado:', response);
         reply.likes += 1; // Incrementar el contador de likes en la respuesta

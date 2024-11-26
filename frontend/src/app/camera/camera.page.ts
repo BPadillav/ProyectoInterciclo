@@ -107,7 +107,7 @@ export class CameraPage implements OnInit, OnDestroy {
       this.stopCamera();
 
       // Navega a la página de previsualización
-      this.navCtrl.navigateForward('/photo-preview', {
+      this.navCtrl.navigateForward('tabs/photo-preview', {
         queryParams: { photo: this.photo },
       });
     } catch (error) {
