@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
-from backend.database.init_db import get_db
-from backend.app.routes import register_routes  # Importa correctamente las rutas desde routes.py
+from backend.database.init_db import init_db  # Importa init_db
+from backend.app.routes import register_routes  # Importa las rutas correctamente
 
 def create_app():
     app = Flask(__name__)
@@ -10,7 +10,10 @@ def create_app():
     CORS(app, resources={r"/*": {"origins": "*"}})  # Permite solicitudes desde cualquier origen
 
     # Registra las rutas desde routes.py
-    register_routes(app)  # Se asegura de que todas las rutas se registren
+    register_routes(app)  # Asegura que todas las rutas se registren
+
+    # Inicializa la base de datos
+    init_db(app)  # Llama a init_db pasando la aplicación
 
     return app
 
