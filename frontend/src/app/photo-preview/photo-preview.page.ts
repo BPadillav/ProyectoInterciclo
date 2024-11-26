@@ -13,7 +13,7 @@ export class PhotoPreviewPage implements OnInit {
   filteredPhoto: string | undefined; // URL de la foto con filtro aplicado
   displayPhoto: string | undefined; // Foto actualmente mostrada (original o filtrada)
   showOriginal: boolean = true; // Estado para alternar entre original y filtro
-  private baseUrl: string = 'http://localhost:5000'; // URL del backend
+  private baseUrl: string = '';
 
   // Filtros estáticos disponibles
   filters = [
@@ -28,9 +28,11 @@ export class PhotoPreviewPage implements OnInit {
     private http: HttpClient,
     private toastController: ToastController,
     private loadingController: LoadingController
-  ) {}
+  ) { }
 
   ngOnInit() {
+    this.baseUrl = localStorage.getItem('serverUrl') || 'http://localhost:5000';
+
     this.route.queryParams.subscribe((params) => {
       this.photo = params['photo'];
       this.displayPhoto = this.photo; // Mostrar la foto original inicialmente
@@ -149,9 +151,13 @@ export class PhotoPreviewPage implements OnInit {
     this.http.post(`${this.baseUrl}/apply_filter`, formData).subscribe({
       next: (response: any) => {
         console.log('Respuesta del filtro aplicado:', response);
-        this.filteredPhoto = response.processed_image_url; // Asigna la URL de la imagen procesada
+
+        // Completar la URL en el frontend
+        const processedImageName = response.processed_image_url;
+        this.filteredPhoto = `${this.baseUrl}/uploads/${processedImageName}`;
         this.displayPhoto = this.filteredPhoto;
         this.showOriginal = false;
+
         this.showToast('Filtro aplicado correctamente.', 'success');
         loading.dismiss();
       },
@@ -165,6 +171,7 @@ export class PhotoPreviewPage implements OnInit {
       },
     });
   }
+
 
   discardPhoto() {
     console.log('Descartando foto y navegando a la página principal.');

@@ -330,7 +330,7 @@ def register_routes(app):
         db = next(get_db())  # Obtiene la sesión de base de datos
         publicaciones = db.query(Publicaciones).all()
 
-        print('a',publicaciones)
+        # print('a',publicaciones)
 
         # Estructura de salida
         publicacion_list = [
@@ -460,6 +460,35 @@ def register_routes(app):
         ]
 
         return jsonify(comment_list), 200
+    
+    @app.route('/list_comments/<int:publication_id>', methods=['GET'])
+    def list_comments_by_publication(publication_id):
+        """
+        Listar comentarios de una publicación específica con detalles de usuario.
+        """
+        db = next(get_db())  # Obtiene la sesión de base de datos
+
+        # Filtrar comentarios por el ID de publicación
+        comentarios = db.query(Comments).filter(Comments.publicIDComment == publication_id).all()
+
+        # Estructura de salida
+        comment_list = [
+            {
+                "IDcomments": comment.IDcomments,
+                "contenido": comment.contenido,
+                "image": comment.image,
+                "fecha": comment.fecha.strftime("%Y-%m-%d %H:%M:%S"),
+                "publicIDComment": comment.publicIDComment,
+                "publicacion": comment.publicacion.rutaImagen if comment.publicacion else None,
+                "userIDComment": comment.userIDComment,
+                "usuario": comment.usuario.email if comment.usuario else None
+            }
+            for comment in comentarios
+        ]
+
+        # Devuelve la lista de comentarios filtrados
+        return jsonify(comment_list), 200
+
 
 
     @app.route('/update_comment/<int:comment_id>', methods=['PUT'])
@@ -833,7 +862,7 @@ def register_routes(app):
             # Retornar la URL de la imagen procesada
             return jsonify({
                 "message": "Filtro aplicado correctamente.",
-                "processed_image_url": f"http://localhost:5000/uploads/{filename}",
+                "processed_image_url": filename,
                 "processing_time": time_results
             }), 200
 

@@ -1,28 +1,4 @@
-<ion-header>
-  <ion-toolbar>
-    <img class="img-insta" src="assets/instagram-logo.png" alt="Instagram" />
-
-    <ion-buttons slot="end">
-      <ion-button>
-        <ion-icon slot="icon-only" name="send-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content>
-  <!-- Historias -->
-  <div class="story-list">
-    <div class="scroll-horizontal">
-      <div class="scroll-item" *ngFor="let story of stories">
-        <ion-avatar class="avatar-md">
-          <img [src]="story.avatar" [alt]="story.username">
-        </ion-avatar>
-        <div class="item-label">{{ story.username }}</div>
-      </div>
-    </div>
-  </div>
-
   <!-- Publicaciones -->
   <div class="post-list">
     <div class="post-item" *ngFor="let post of posts">
@@ -52,11 +28,14 @@
       <div class="post-actions">
         <ion-row>
           <ion-col>
-            <ion-button fill="clear">
-              <ion-icon slot="icon-only" name="heart-outline"></ion-icon>
+            <ion-button fill="clear" (click)="likePost(post.id, post)">
+              <ion-icon
+                slot="icon-only"
+                [name]="post.likes > 0 ? 'heart' : 'heart-outline'">
+              </ion-icon>
             </ion-button>
             <ion-button fill="clear" (click)="viewComments(post.id)">
-              <ion-icon slot="icon-only" name="chatbubble-outline" ></ion-icon>
+              <ion-icon slot="icon-only" name="chatbubble-outline"></ion-icon>
             </ion-button>
             <ion-button fill="clear">
               <ion-icon slot="icon-only" name="send-outline"></ion-icon>
@@ -86,10 +65,6 @@
             Ver todos los {{ post.comments.length }} comentarios
           </ion-button>
         </div>
-        
-        
-        
-        
       </div>
     </div>
   </div>

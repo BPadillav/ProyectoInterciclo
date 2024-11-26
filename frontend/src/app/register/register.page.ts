@@ -15,11 +15,14 @@ export class RegisterPage implements OnInit {
   fullName: string = '';
   username: string = '';
 
-  private baseUrl: string = 'http://192.168.18.83:5000'; // Cambia esta URL si está en producción
+  private baseUrl: string = '';
 
   constructor(private http: HttpClient, private toastController: ToastController,private router: Router) { }
 
-  ngOnInit() {}
+  ngOnInit() {
+    // Cargar la baseUrl desde localStorage o usar valor por defecto
+    this.baseUrl = localStorage.getItem('serverUrl') || 'http://localhost:5000';
+  }
 
   async showToast(message: string, color: string = 'dark') {
     const toast = await this.toastController.create({
