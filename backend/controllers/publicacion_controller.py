@@ -9,28 +9,53 @@ from backend.services.publicacion_service import (
 
 publicacion_bp = Blueprint('publicacion', __name__)
 
-# Crear una publicación
 @publicacion_bp.route('/publicaciones', methods=['POST'])
 def create():
     """
     Crea una nueva publicación.
     """
     try:
-        data = request.get_json()
+        ruta_imagen = request.files.get('rutaImagen')
+        contenido = request.form.get('contenido')
+        user_id = request.form.get('user_id')
+        filtro_id = request.form.get('filtro_id')
+
+        if not ruta_imagen and not contenido:
+            raise ValueError("Debe proporcionar al menos una imagen o contenido para la publicación.")
+        if not user_id:
+            raise ValueError("El ID de usuario es obligatorio.")
+
+        # Manejar la imagen (si se proporciona)
+        imagen_path = None
+        if ruta_imagen:
+            # Validar el nombre del archivo directamente
+            filename = ruta_imagen.filename
+
+            # Reemplazar caracteres inseguros manualmente
+            filename = filename.replace(" ", "_").replace("..", "_")
+
+            # Guardar el archivo en la carpeta 'uploads'
+            imagen_path = f"uploads/{filename}"
+            ruta_imagen.save(imagen_path)
+
+        # Crear la publicación
         new_publicacion = create_publicacion(
-            rutaImagen=data['rutaImagen'],
-            userPublicID=data['user_id'],
-            contenido=data.get('contenido'),
-            filtroIDPublic=data.get('filtro_id')
+            rutaImagen=imagen_path,
+            userPublicID=user_id,
+            contenido=contenido,
+            filtroIDPublic=filtro_id
         )
+
         return jsonify({
-            "id": new_publicacion.IDpublic, 
+            "id": new_publicacion.IDpublic,
             "rutaImagen": new_publicacion.rutaImagen,
             "contenido": new_publicacion.contenido,
             "fecha": new_publicacion.fecha.strftime("%Y-%m-%d %H:%M:%S")
         }), 201
+
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
+
 
 # Obtener todas las publicaciones de un usuario
 @publicacion_bp.route('/publicaciones/user/<int:user_id>', methods=['GET'])

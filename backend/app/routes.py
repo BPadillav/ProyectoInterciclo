@@ -1,6 +1,7 @@
 from flask import request, jsonify
 from backend.database.init_db import get_db  # Asegúrate de importar get_db correctamente
 from backend.database.models import User, Comments, Likes, Filtros, Publicaciones, AnswersComments
+import os
 
 def register_routes(app):
     """
@@ -239,32 +240,46 @@ def register_routes(app):
         """
         Crear una nueva publicación.
         """
-        data = request.get_json()
         db = next(get_db())  # Obtiene la sesión de base de datos
 
+        # Validar si la solicitud contiene datos de formulario
+        userIDPublic = request.form.get('userIDPublic')
+        contenido = request.form.get('contenido')
+        filtroIDPublic = request.form.get('filtroIDPublic')
+        ruta_imagen = request.files.get('rutaImagen')  # Obtener el archivo si está presente
+
         # Validar datos obligatorios
-        if 'userIDPublic' not in data:
+        if not userIDPublic:
             return jsonify({"message": "Faltan datos obligatorios: userIDPublic"}), 400
 
         # Verificar la existencia del usuario
-        usuario = db.query(User).filter_by(IDuser=data['userIDPublic']).first()
+        usuario = db.query(User).filter_by(IDuser=userIDPublic).first()
         if not usuario:
             return jsonify({"message": "Usuario no encontrado"}), 404
 
-        # Verificar si existe el filtro (si se proporcionó)
-        filtro = db.query(Filtros).filter_by(IDfiltro=data.get('filtroIDPublic')).first() if data.get('filtroIDPublic') else None
+        # Verificar si existe el filtro (si se proporciona)
+        filtro = db.query(Filtros).filter_by(IDfiltro=filtroIDPublic).first() if filtroIDPublic else None
+
+        # Manejar la imagen si está presente
+        imagen_path = None
+        if ruta_imagen:
+            imagen_folder = 'uploads/'  # Carpeta donde se guardarán las imágenes
+            os.makedirs(imagen_folder, exist_ok=True)  # Crear la carpeta si no existe
+            imagen_path = os.path.join(imagen_folder, ruta_imagen.filename)  # Ruta completa de la imagen
+            ruta_imagen.save(imagen_path)  # Guardar la imagen en la carpeta
 
         # Crear la publicación
         publicacion = Publicaciones(
-            rutaImagen=data.get('rutaImagen'),
-            contenido=data.get('contenido'),
-            userIDPublic=data['userIDPublic'],
+            rutaImagen=imagen_path,  # Ruta de la imagen o None
+            contenido=contenido,  # Contenido o None
+            userIDPublic=userIDPublic,
             filtroIDPublic=filtro.IDfiltro if filtro else None
         )
         db.add(publicacion)
         db.commit()
 
         return jsonify({"message": "Publicación creada exitosamente", "publicacion_id": publicacion.IDpublic}), 201
+
 
 
 
