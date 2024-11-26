@@ -160,9 +160,7 @@ def register_routes(app):
         }), 200
 
 
-
-
-#FILTROS******************************************************************
+# CREACION DE FILTROS******************************************************************
 
     @app.route('/create_filtro', methods=['POST'])
     def create_filtro():
@@ -182,7 +180,6 @@ def register_routes(app):
         db.commit()
 
         return jsonify({"message": "Filtro creado exitosamente", "filtro_id": filtro.IDfiltro}), 201
-
 
 
     @app.route('/list_filtros', methods=['GET'])
@@ -240,7 +237,7 @@ def register_routes(app):
 
 
 
-#PUBLICACIONES*****************************************************
+#CREACION DE PUBLICACIONES*****************************************************
 
     @app.route('/uploads/<path:filename>', methods=['GET'])
     def uploaded_file(filename):
@@ -315,12 +312,6 @@ def register_routes(app):
             }), 201
         except Exception as e:
             return jsonify({"message": f"Error al procesar la publicación: {str(e)}"}), 500
-
-
-
-
-
-
 
     @app.route('/list_publicaciones', methods=['GET'])
     def list_publicaciones():
@@ -401,7 +392,7 @@ def register_routes(app):
         return jsonify({"message": "Publicación eliminada exitosamente"}), 200
 
 
-#COMMENTS********************************************************************************
+#CREACION DE COMMENTS********************************************************************************
     @app.route('/create_comment', methods=['POST'])
     def create_comment():
         """
@@ -489,8 +480,6 @@ def register_routes(app):
         # Devuelve la lista de comentarios filtrados
         return jsonify(comment_list), 200
 
-
-
     @app.route('/update_comment/<int:comment_id>', methods=['PUT'])
     def update_comment(comment_id):
         """
@@ -514,7 +503,6 @@ def register_routes(app):
 
         return jsonify({"message": "Comentario actualizado exitosamente"}), 200
 
-
     @app.route('/delete_comment/<int:comment_id>', methods=['DELETE'])
     def delete_comment(comment_id):
         """
@@ -534,9 +522,7 @@ def register_routes(app):
         return jsonify({"message": "Comentario eliminado exitosamente"}), 200
 
 
-
-
-#ANSWER******************************************
+# ANSWER******************************************
 
     @app.route('/create_answer', methods=['POST'])
     def create_answer():
@@ -570,8 +556,6 @@ def register_routes(app):
         db.commit()
 
         return jsonify({"message": "Respuesta creada exitosamente", "answer_id": respuesta.IDanswer}), 201
-
-
 
     @app.route('/list_answers/<int:comment_id>', methods=['GET'])
     def list_answers(comment_id):
@@ -673,8 +657,7 @@ def register_routes(app):
 
         return jsonify(answer_list), 200
 
-
-# LIKES ******************************************************************
+#LIKES ******************************************************************
 
     @app.route('/create_like', methods=['POST'])
     def create_like():
@@ -717,7 +700,6 @@ def register_routes(app):
 
         return jsonify({"message": "Like creado exitosamente", "like_id": like.IDlike}), 201
 
-
     @app.route('/list_likes', methods=['GET'])
     def list_likes():
         """
@@ -743,7 +725,6 @@ def register_routes(app):
         ]
 
         return jsonify(like_list), 200
-
 
     @app.route('/update_like/<int:like_id>', methods=['PUT'])
     def update_like(like_id):
@@ -784,7 +765,6 @@ def register_routes(app):
 
         return jsonify({"message": "Like actualizado exitosamente"}), 200
 
-
     @app.route('/delete_like/<int:like_id>', methods=['DELETE'])
     def delete_like(like_id):
         """
@@ -803,7 +783,7 @@ def register_routes(app):
 
         return jsonify({"message": "Like eliminado exitosamente"}), 200
 
-# FILTROS CUDA ******************************************************************
+# APLICACION FILTROS CUDA ******************************************************************
 
     from backend.filters import process_image, allowed_file
 

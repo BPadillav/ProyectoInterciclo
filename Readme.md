@@ -19,7 +19,7 @@ El proyecto se desarrollo acerca de una plataforma social de imágenes que nos p
 ---
 
 ## Estructura del Proyecto
-backend: Carpeta principal que contiene todo el código relacionado con la API y el procesamiento en el servidor.
+Carpeta backend: Esta carpeta contiene todo el código relacionado con la API y el procesamiento en el servidor.
 
 app: Directorio que incluye la configuración general y las rutas del proyecto.
 
@@ -58,10 +58,12 @@ cert.pem y key.pem: Certificados SSL/TLS para habilitar conexiones HTTPS seguras
 logo.png: Imagen utilizada en el proyecto, posiblemente como parte de los filtros personalizados.
 run.py: Archivo principal para ejecutar el servidor backend.
 
+Carpeta frontend: En esta carpeta se presenta la estructura correspondiente al proyecto Android generado con Capacitor, que incluye carpetas y archivos esenciales para la construcción y configuración de la aplicación. Dentro de app/src, se encuentran los paquetes para pruebas instrumentadas (androidTest) y unitarias (test), así como el código fuente principal de la aplicación (main) con el archivo MainActivity.java y los recursos definidos en res. Además, en el nivel superior se incluyen archivos de configuración como build.gradle, capacitor.build.gradle y el AndroidManifest.xml. La carpeta gradle/wrapper contiene las herramientas necesarias para la gestión de versiones y configuración de Gradle.
+
 
 **Conclusiones:**  
 
-Para concluir, este proyecto nos permitió demostrar la viabilidad de integrar tecnologías avanzadas como PyCUDA, Docker y desarrollo móvil, logrando construir una plataforma social completa y eficiente. La dockerización de la API y la base de datos facilitó el despliegue, además de garantizar un entorno estable y adaptable. Por otro lado, la implementación de filtros de convolución personalizados aportó un valor creativo y finalmente, el enfoque en el diseño de una interfaz móvil intuitiva permitió ofrecer una experiencia de usuario fluida y satisfactoria, cumpliendo con los objetivos planteados tanto a nivel funcional como visual.
+En conclusión, este proyecto integró PyCUDA, Docker y desarrollo móvil para crear una plataforma social eficiente. La dockerización simplificó el despliegue y aseguró un entorno estable, mientras que los filtros personalizados añadieron creatividad y la interfaz móvil intuitiva garantizó una experiencia fluida, cumpliendo los objetivos funcionales y visuales.
 
 **Recomendaciones:** 
 
