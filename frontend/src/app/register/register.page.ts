@@ -14,7 +14,7 @@ export class RegisterPage implements OnInit {
   fullName: string = '';
   username: string = '';
 
-  private baseUrl: string = 'https://127.0.0.1:5000'; // Cambia esta URL si está en producción
+  private baseUrl: string = 'http://127.0.0.1:5000'; // Cambia esta URL si está en producción
 
   constructor(private http: HttpClient, private toastController: ToastController) { }
 
@@ -44,7 +44,7 @@ export class RegisterPage implements OnInit {
       avatar: null // O maneja lógicamente el avatar si lo necesitas
     };
 
-    this.http.post(`${this.baseUrl}/users`, userData).subscribe({
+    this.http.post(`${this.baseUrl}/create_user`, userData).subscribe({
       next: (response: any) => {
         console.log('Usuario registrado:', response);
         this.showToast('Registro exitoso', 'success');
@@ -54,5 +54,6 @@ export class RegisterPage implements OnInit {
         this.showToast('Ocurrió un error al registrar el usuario', 'danger');
       }
     });
+    
   }
 }
