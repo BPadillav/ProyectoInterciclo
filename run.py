@@ -6,6 +6,7 @@ from werkzeug.utils import secure_filename
 import os
 
 UPLOAD_FOLDER = './uploads'
+PROCESSED_FOLDER = './uploads/processed'
 
 
 def create_app():

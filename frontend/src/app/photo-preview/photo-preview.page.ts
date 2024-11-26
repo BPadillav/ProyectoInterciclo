@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ToastController } from '@ionic/angular';
+import { ToastController, LoadingController } from '@ionic/angular';
 
 @Component({
   selector: 'app-photo-preview',
@@ -10,60 +10,47 @@ import { ToastController } from '@ionic/angular';
 })
 export class PhotoPreviewPage implements OnInit {
   photo: string | undefined; // Foto original en Base64
-  filteredPhoto: string | undefined; // Foto con filtro aplicado
+  filteredPhoto: string | undefined; // URL de la foto con filtro aplicado
   displayPhoto: string | undefined; // Foto actualmente mostrada (original o filtrada)
   showOriginal: boolean = true; // Estado para alternar entre original y filtro
-  private baseUrl: string = 'http://localhost:5000'; // Cambia esta URL si está en producción
+  private baseUrl: string = 'http://localhost:5000'; // URL del backend
 
+  // Filtros estáticos disponibles
   filters = [
-    { name: 'Filtro 1', value: 'filter1' },
-    { name: 'Filtro 2', value: 'filter2' },
-    { name: 'Filtro 3', value: 'filter3' },
-  ]; // Filtros disponibles
+    { name: 'Sharpen', value: 'sharpen' },
+    { name: 'Dilation', value: 'dilation' },
+    { name: 'Canny', value: 'canny' },
+  ];
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private http: HttpClient,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private loadingController: LoadingController
   ) {}
 
   ngOnInit() {
     this.route.queryParams.subscribe((params) => {
       this.photo = params['photo'];
-      this.displayPhoto = this.photo; // Inicialmente mostrar la foto original
+      this.displayPhoto = this.photo; // Mostrar la foto original inicialmente
+      console.log('Foto cargada (Base64):', this.photo);
     });
   }
 
   async showToast(message: string, color: string = 'dark') {
     const toast = await this.toastController.create({
       message,
-      duration: 2000, // 2 segundos
+      duration: 2000,
       position: 'bottom',
-      color, // Colores: 'success', 'danger', etc.
+      color,
     });
     await toast.present();
-  }
-
-  applyFilter(filter: { name: string; value: string }) {
-    if (!this.photo) return;
-
-    const simulatedServerResponse = `https://via.placeholder.com/600x400?text=${encodeURIComponent(filter.name)}`;
-    this.filteredPhoto = simulatedServerResponse; // Simula una foto filtrada
-    this.displayPhoto = this.filteredPhoto;
-    this.showOriginal = false; // Cambia al estado de mostrar el filtro
   }
 
   toggleOriginal() {
     this.showOriginal = !this.showOriginal;
     this.displayPhoto = this.showOriginal ? this.photo : this.filteredPhoto;
-  }
-
-  private base64ToBlob(base64: string, contentType = 'image/png'): Blob {
-    const byteCharacters = atob(base64.split(',')[1]);
-    const byteNumbers = Array.from(byteCharacters, (char) => char.charCodeAt(0));
-    const byteArray = new Uint8Array(byteNumbers);
-    return new Blob([byteArray], { type: contentType });
   }
 
   async savePhoto() {
@@ -72,38 +59,115 @@ export class PhotoPreviewPage implements OnInit {
       return;
     }
 
-    // Crear un objeto FormData para enviar datos al backend
-    const formData = new FormData();
-    formData.append('userIDPublic', '1'); // ID del usuario
-    formData.append('contenido', 'Descripción de la foto'); // Contenido o descripción
-    formData.append('filtroIDPublic', '1'); // ID del filtro aplicado
+    try {
+      const formData = new FormData();
+      formData.append('userIDPublic', '1');
+      formData.append('contenido', 'Descripción de la foto');
+      formData.append('filtroIDPublic', '1');
 
-    // Convertir la imagen a Blob y añadirla al FormData
-    const base64Photo = this.filteredPhoto || this.photo;
-    if (base64Photo) {
-      const photoBlob = this.base64ToBlob(base64Photo);
-      formData.append('rutaImagen', photoBlob, 'photo.png'); // Añadir el archivo
-    } else {
-      this.showToast('Error al procesar la imagen.', 'danger');
+      let photoBlob: Blob;
+
+      if (this.filteredPhoto?.startsWith('http')) {
+        // Descargar la imagen procesada desde la URL del backend
+        console.log('Descargando imagen procesada desde URL:', this.filteredPhoto);
+        const response = await this.http.get(this.filteredPhoto, { responseType: 'blob' }).toPromise();
+        if (!response) {
+          throw new Error('No se pudo descargar la imagen procesada.');
+        }
+        photoBlob = response;
+      } else if (this.photo) {
+        console.log('Convirtiendo Base64 de la foto original a Blob.');
+        photoBlob = this.base64ToBlob(this.photo);
+      } else {
+        throw new Error('No se pudo procesar la imagen.');
+      }
+
+      formData.append('rutaImagen', photoBlob, 'photo.png');
+      console.log('FormData creado correctamente:', formData);
+
+      const loading = await this.loadingController.create({
+        message: 'Guardando foto...',
+      });
+      await loading.present();
+
+      this.http.post(`${this.baseUrl}/create_publicacion`, formData).subscribe({
+        next: async () => {
+          await this.showToast('Publicación creada exitosamente.', 'success');
+          this.router.navigate(['/tabs/home']);
+          loading.dismiss();
+        },
+        error: async (error) => {
+          console.error('Error en la solicitud POST:', error);
+          await this.showToast(
+            `Error al guardar la publicación: ${error.error?.message || 'Error desconocido'}`,
+            'danger'
+          );
+          loading.dismiss();
+        },
+      });
+    } catch (error) {
+      console.error('Error al procesar la imagen antes de guardar:', error);
+      this.showToast(`Error al procesar la imagen: ${error}`, 'danger');
+    }
+  }
+
+  private base64ToBlob(base64: string, contentType = 'image/png'): Blob {
+    try {
+      console.log('Convirtiendo Base64 a Blob. Entrada:', base64);
+      const [header, data] = base64.split(',');
+      if (!header.startsWith('data:image') || !data) {
+        console.error('Base64 inválido o sin prefijo:', base64);
+        throw new Error('Formato de Base64 inválido.');
+      }
+      const byteCharacters = atob(data);
+      const byteNumbers = Array.from(byteCharacters, (char) => char.charCodeAt(0));
+      const byteArray = new Uint8Array(byteNumbers);
+      return new Blob([byteArray], { type: contentType });
+    } catch (error) {
+      console.error('Error al convertir Base64 a Blob:', error);
+      throw new Error('Formato de Base64 inválido.');
+    }
+  }
+
+  async applyFilterToPhoto(filter: { name: string; value: string }) {
+    if (!this.photo) {
+      this.showToast('No hay foto para aplicar el filtro.', 'danger');
       return;
     }
 
-    // Realizar la solicitud POST directamente
-    this.http.post(`${this.baseUrl}/create_publicacion`, formData).subscribe({
-      next: async () => {
-        await this.showToast('Publicación creada exitosamente.', 'success');
-        this.router.navigate(['/tabs/home']);
+    const loading = await this.loadingController.create({
+      message: `Aplicando ${filter.name}...`,
+    });
+    await loading.present();
+
+    const formData = new FormData();
+    formData.append('filter_type', filter.value);
+    formData.append('num_threads', '1024');
+    formData.append('mask_size', '3');
+    formData.append('rutaImagen', this.photo!);
+
+    this.http.post(`${this.baseUrl}/apply_filter`, formData).subscribe({
+      next: (response: any) => {
+        console.log('Respuesta del filtro aplicado:', response);
+        this.filteredPhoto = response.processed_image_url; // Asigna la URL de la imagen procesada
+        this.displayPhoto = this.filteredPhoto;
+        this.showOriginal = false;
+        this.showToast('Filtro aplicado correctamente.', 'success');
+        loading.dismiss();
       },
-      error: async (error) => {
-        await this.showToast(
-          `Error al guardar la publicación: ${error.error.message || 'Error desconocido'}`,
+      error: (error) => {
+        console.error('Error al aplicar el filtro:', error);
+        this.showToast(
+          `Error al aplicar el filtro: ${error.error?.message || 'Error desconocido'}`,
           'danger'
         );
+        loading.dismiss();
       },
     });
   }
 
   discardPhoto() {
+    console.log('Descartando foto y navegando a la página principal.');
     this.router.navigate(['/tabs/home']);
   }
 }

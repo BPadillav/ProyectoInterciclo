@@ -19,6 +19,11 @@ export class HomePage implements OnInit {
     this.loadPosts();
   }
 
+  ionViewWillEnter() {
+    this.loadStories();
+    this.loadPosts();
+  }
+
   loadStories() {
     this.http.get<any[]>('assets/data/stories.json').subscribe((data) => {
       this.stories = data;

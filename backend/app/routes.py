@@ -773,3 +773,70 @@ def register_routes(app):
         db.commit()
 
         return jsonify({"message": "Like eliminado exitosamente"}), 200
+
+# FILTROS CUDA ******************************************************************
+
+    from backend.filters import process_image, allowed_file
+
+    @app.route('/apply_filter', methods=['POST'])
+    def apply_filter():
+        """
+        Aplica un filtro a una imagen enviada en Base64 y devuelve la URL de la imagen procesada.
+        """
+        try:
+            from datetime import datetime
+            import base64
+            import os
+            import cv2
+            import numpy as np
+
+            # Filtros estáticos disponibles
+            available_filters = {
+                "sharpen": "Filtro de nitidez",
+                "dilation": "Filtro de dilatación",
+                "canny": "Filtro Canny"
+            }
+
+            # Parámetros recibidos del cliente
+            filter_type = request.form.get('filter_type', 'sharpen')
+            num_threads = int(request.form.get('num_threads', 1024))
+            mask_size = int(request.form.get('mask_size', 3))
+            base64_image = request.form.get('rutaImagen')
+
+            # Validar filtro seleccionado
+            if filter_type not in available_filters:
+                return jsonify({"message": "Filtro no válido."}), 400
+
+            # Validar imagen en Base64
+            if not base64_image:
+                return jsonify({"message": "Imagen en Base64 no proporcionada."}), 400
+
+            # Decodificar la imagen Base64
+            header, encoded = base64_image.split(',', 1)
+            image_data = base64.b64decode(encoded)
+            np_img = np.frombuffer(image_data, np.uint8)
+            image = cv2.imdecode(np_img, cv2.IMREAD_COLOR)
+
+            if image is None:
+                return jsonify({"message": "No se pudo leer la imagen proporcionada."}), 400
+
+            # Procesar la imagen con el filtro seleccionado
+            processed_image, time_results = process_image(num_threads, filter_type, mask_size, image)
+
+            # Generar un nombre único para la imagen procesada
+            filename = f"filtered_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.png"
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+            # Guardar la imagen procesada
+            cv2.imwrite(filepath, processed_image)
+
+            # Retornar la URL de la imagen procesada
+            return jsonify({
+                "message": "Filtro aplicado correctamente.",
+                "processed_image_url": f"http://localhost:5000/uploads/{filename}",
+                "processing_time": time_results
+            }), 200
+
+        except Exception as e:
+            return jsonify({"message": f"Error al aplicar filtro: {str(e)}"}), 500
+
