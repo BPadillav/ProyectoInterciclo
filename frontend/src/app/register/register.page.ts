@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ToastController } from '@ionic/angular';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-register',
@@ -16,7 +17,7 @@ export class RegisterPage implements OnInit {
 
   private baseUrl: string = 'http://localhost:5000'; // Cambia esta URL si está en producción
 
-  constructor(private http: HttpClient, private toastController: ToastController) { }
+  constructor(private http: HttpClient, private toastController: ToastController,private router: Router) { }
 
   ngOnInit() {}
 
@@ -46,12 +47,18 @@ export class RegisterPage implements OnInit {
 
     this.http.post(`${this.baseUrl}/create_user`, userData).subscribe({
       next: (response: any) => {
-        console.log('Usuario registrado:', response);
-        this.showToast('Registro exitoso', 'success');
+        if (response.valid == 'true') {
+          this.showToast('Registro exitoso', 'success');
+          this.router.navigate(['/login']); // Redirige a la página principal
+        } else {
+          this.showToast(response.message, 'danger');
+        }
+        // console.log('Usuario registrado:', response);
+        
       },
       error: (err) => {
-        console.error('Error al registrar:', err);
-        this.showToast('Ocurrió un error al registrar el usuario', 'danger');
+        // console.error('Error al registrar:', err);
+        this.showToast('Ocurrió un error al registrar el usuario:' +err.error.message, 'danger');
       }
     });
     

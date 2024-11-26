@@ -10,6 +10,7 @@ import { Router } from '@angular/router'; // Importamos Router para manejar la n
 export class HomePage implements OnInit {
   stories: any[] = [];
   posts: any[] = [];
+  private baseUrl: string = 'http://localhost:5000'; // Cambia esta URL si está en producción
 
   constructor(private http: HttpClient, private router: Router) {} // Agregamos Router al constructor
 
@@ -25,10 +26,15 @@ export class HomePage implements OnInit {
   }
 
   loadPosts() {
-    this.http.get<any[]>('assets/data/posts.json').subscribe((data) => {
-      this.posts = data;
+    this.http.get<any[]>(`${this.baseUrl}/list_publicaciones`).subscribe((data) => {
+      this.posts = data.map(post => ({
+        ...post,
+        avatar: `${this.baseUrl}/uploads/${post.avatar.replace('./uploads/', '')}`, // Construir la URL completa
+      image: `${this.baseUrl}/uploads/${post.image.replace('./uploads/', '')}`   // Construir la URL completa
+      }));
     });
   }
+  
 
   viewComments(postId: number) {
     console.log(`Navegando a los comentarios del post con ID: ${postId}`);

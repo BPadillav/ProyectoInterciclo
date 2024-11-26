@@ -17,9 +17,9 @@ export class LoginPage implements OnInit {
     private http: HttpClient,
     private toastController: ToastController,
     private router: Router
-  ) {}
+  ) { }
 
-  ngOnInit() {}
+  ngOnInit() { }
 
   async showToast(message: string, color: string = 'dark') {
     const toast = await this.toastController.create({
@@ -44,14 +44,13 @@ export class LoginPage implements OnInit {
 
     this.http.post(`${this.baseUrl}/users/login`, loginData).subscribe({
       next: (response: any) => {
-        console.log('Inicio de sesión exitoso:', response);
-
-        // Guarda el token u otra información si es necesario
-        localStorage.setItem('authToken', 'fake-token'); // Cambiar por el token real si se utiliza
-        localStorage.setItem('userId', response.IDuser);
-
-        this.showToast('Inicio de sesión exitoso', 'success');
-        this.router.navigate(['/tabs/home']); // Redirige a la página principal
+        if (response.valid == 'true') {
+          localStorage.setItem('authToken', response.IDuser);
+          this.showToast('Inicio de sesión exitoso', 'success');
+          this.router.navigate(['/tabs/home']); // Redirige a la página principal
+        } else {
+          this.showToast(response.message, 'danger');
+        }
       },
       error: (err) => {
         console.error('Error al iniciar sesión:', err);

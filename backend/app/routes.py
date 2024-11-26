@@ -1,6 +1,13 @@
-from flask import request, jsonify
+from flask import request, jsonify, send_from_directory
 from backend.database.init_db import get_db  # Asegúrate de importar get_db correctamente
 from backend.database.models import User, Comments, Likes, Filtros, Publicaciones, AnswersComments
+from werkzeug.utils import secure_filename
+import os
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def register_routes(app):
     """
@@ -130,19 +137,20 @@ def register_routes(app):
 
         # Verifica si los campos requeridos están presentes
         if not data.get('email') or not data.get('password'):
-            return jsonify({'message': 'Correo electrónico y contraseña son requeridos'}), 400
+            return jsonify({'valid': 'false', 'message': 'Correo electrónico y contraseña son requeridos'}), 400
 
         # Buscar al usuario en la base de datos
         user = db.query(User).filter(User.email == data['email']).first()
         if not user:
-            return jsonify({'message': 'Credenciales incorrectas'}), 200
+            return jsonify({'valid': 'false', 'message': 'Credenciales incorrectas'}), 200
 
         # Verifica la contraseña directamente
         if user.password != data['password']:
-            return jsonify({'message': 'Credenciales incorrectas'}), 200
+            return jsonify({'valid': 'false', 'message': 'Credenciales incorrectas'}), 200
 
         # Retorna los datos del usuario si las credenciales son correctas
         return jsonify({
+            "valid": 'true',
             "IDuser": user.IDuser,
             "email": user.email,
             "username": user.username,
@@ -233,38 +241,69 @@ def register_routes(app):
 
 #PUBLICACIONES*****************************************************
 
+    @app.route('/uploads/<path:filename>', methods=['GET'])
+    def uploaded_file(filename):
+        """
+        Sirve los archivos desde el directorio de subidas.
+        """
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
     @app.route('/create_publicacion', methods=['POST'])
     def create_publicacion():
         """
-        Crear una nueva publicación.
+        Crear una nueva publicación con una foto subida como archivo.
         """
-        data = request.get_json()
-        db = next(get_db())  # Obtiene la sesión de base de datos
+        from datetime import datetime  # Asegúrate de importar datetime si usas fechas
+        
+        # Obtén los datos del formulario
+        userIDPublic = request.form.get('userIDPublic')
+        contenido = request.form.get('contenido', '')
+        filtroIDPublic = request.form.get('filtroIDPublic', None)
+        file = request.files.get('rutaImagen')
 
         # Validar datos obligatorios
-        if 'userIDPublic' not in data:
-            return jsonify({"message": "Faltan datos obligatorios: userIDPublic"}), 400
+        if not userIDPublic or not file:
+            return jsonify({"message": "Datos obligatorios faltantes."}), 400
 
-        # Verificar la existencia del usuario
-        usuario = db.query(User).filter_by(IDuser=data['userIDPublic']).first()
-        if not usuario:
-            return jsonify({"message": "Usuario no encontrado"}), 404
+        # Validar el formato del archivo
+        if not allowed_file(file.filename):
+            return jsonify({"message": "Formato de archivo no permitido."}), 400
 
-        # Verificar si existe el filtro (si se proporcionó)
-        filtro = db.query(Filtros).filter_by(IDfiltro=data.get('filtroIDPublic')).first() if data.get('filtroIDPublic') else None
+        try:
+            # Guardar el archivo con un nombre seguro
+            filename = secure_filename(f"user_{userIDPublic}_{file.filename}")
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
 
-        # Crear la publicación
-        publicacion = Publicaciones(
-            rutaImagen=data.get('rutaImagen'),
-            contenido=data.get('contenido'),
-            userIDPublic=data['userIDPublic'],
-            filtroIDPublic=filtro.IDfiltro if filtro else None
-        )
-        db.add(publicacion)
-        db.commit()
+            # Crear la nueva publicación en la base de datos
+            db = next(get_db())  # Obtén la sesión de la base de datos
 
-        return jsonify({"message": "Publicación creada exitosamente", "publicacion_id": publicacion.IDpublic}), 201
+            nueva_publicacion = Publicaciones(
+                rutaImagen=filepath,
+                contenido=contenido,
+                userIDPublic=userIDPublic,
+                filtroIDPublic=filtroIDPublic,
+                fecha=datetime.utcnow()  # Asigna la fecha actual
+            )
+
+            db.add(nueva_publicacion)  # Añadir la publicación a la sesión
+            db.commit()  # Confirmar la transacción
+
+            # Devolver la publicación creada
+            return jsonify({
+                "message": "Publicación creada exitosamente",
+                "publicacion": {
+                    "id": nueva_publicacion.IDpublic,
+                    "rutaImagen": nueva_publicacion.rutaImagen,
+                    "contenido": nueva_publicacion.contenido,
+                    "userIDPublic": nueva_publicacion.userIDPublic,
+                    "filtroIDPublic": nueva_publicacion.filtroIDPublic,
+                    "fecha": nueva_publicacion.fecha.strftime("%Y-%m-%d %H:%M:%S"),
+                }
+            }), 201
+        except Exception as e:
+            return jsonify({"message": f"Error al procesar la publicación: {str(e)}"}), 500
+
 
 
 
@@ -277,15 +316,19 @@ def register_routes(app):
         db = next(get_db())  # Obtiene la sesión de base de datos
         publicaciones = db.query(Publicaciones).all()
 
+        print('a',publicaciones)
+
         # Estructura de salida
         publicacion_list = [
             {
-                "IDpublic": publicacion.IDpublic,
-                "rutaImagen": publicacion.rutaImagen,
-                "contenido": publicacion.contenido,
+                "id": publicacion.IDpublic,
+                "username": publicacion.usuario.username,
+                "avatar": publicacion.rutaImagen,
+                "image": publicacion.rutaImagen,
+                "likes": 0,
+                "content": publicacion.contenido,
                 "fecha": publicacion.fecha.strftime("%Y-%m-%d %H:%M:%S"),
                 "userIDPublic": publicacion.userIDPublic,
-                "usuario": publicacion.usuario.email,
                 "filtroIDPublic": publicacion.filtroIDPublic,
                 "filtro": publicacion.filtro.nombreFiltro if publicacion.filtro else None,
             }
