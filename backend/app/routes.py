@@ -120,6 +120,37 @@ def register_routes(app):
 
         return jsonify(user_list), 200
 
+    @app.route('/users/login', methods=['POST'])
+    def login():
+        """
+        Permite a un usuario iniciar sesión.
+        """
+        data = request.get_json()  # Obtiene los datos JSON del cuerpo de la solicitud
+        db = next(get_db())  # Obtiene la sesión de la base de datos
+
+        # Verifica si los campos requeridos están presentes
+        if not data.get('email') or not data.get('password'):
+            return jsonify({'message': 'Correo electrónico y contraseña son requeridos'}), 400
+
+        # Buscar al usuario en la base de datos
+        user = db.query(User).filter(User.email == data['email']).first()
+        if not user:
+            return jsonify({'message': 'Credenciales incorrectas'}), 200
+
+        # Verifica la contraseña directamente
+        if user.password != data['password']:
+            return jsonify({'message': 'Credenciales incorrectas'}), 200
+
+        # Retorna los datos del usuario si las credenciales son correctas
+        return jsonify({
+            "IDuser": user.IDuser,
+            "email": user.email,
+            "username": user.username,
+            "fullname": user.fullname,
+            "avatar": user.avatar
+        }), 200
+
+
 
 
 #FILTROS******************************************************************
