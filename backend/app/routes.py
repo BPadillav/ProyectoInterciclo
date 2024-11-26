@@ -26,17 +26,28 @@ def register_routes(app):
         """
         Crear un nuevo usuario.
         """
-        data = request.get_json()
-        db = next(get_db())  # Obtiene la sesión de base de datos
+        data = request.get_json()  # Obtiene los datos JSON del cuerpo de la solicitud
+        db = next(get_db())  # Obtiene la sesión de la base de datos
 
-        # Verifica si ya existe un usuario con el correo
+        # Verifica si los campos requeridos están presentes
+        if not data.get('email') or not data.get('username') or not data.get('password'):
+            return jsonify({'message': 'Correo electrónico, nombre de usuario y contraseña son requeridos'}), 400
+
+        # Verifica si ya existe un usuario con el correo proporcionado
         existing_user = db.query(User).filter(User.email == data['email']).first()
         if existing_user:
             return jsonify({'message': 'El usuario ya existe'}), 400
 
+        # Verifica si ya existe un usuario con el nombre de usuario
+        existing_username = db.query(User).filter(User.username == data['username']).first()
+        if existing_username:
+            return jsonify({'message': 'El nombre de usuario ya existe'}), 400
+
         # Crear un nuevo usuario
         new_user = User(
             email=data['email'],
+            username=data['username'],  # Añadido el campo 'username'
+            fullname=data['fullname'],  # Añadido el campo 'fullname'
             password=data['password'],
             avatar=data.get('avatar')  # Opcional
         )
@@ -44,6 +55,7 @@ def register_routes(app):
         db.commit()
 
         return jsonify({'message': 'Usuario creado exitosamente', 'user_id': new_user.IDuser}), 201
+
 
     @app.route('/update_user/<int:user_id>', methods=['PUT'])
     def update_user(user_id):
