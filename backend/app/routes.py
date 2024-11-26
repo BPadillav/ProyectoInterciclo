@@ -852,3 +852,77 @@ def register_routes(app):
             return f"{diferencia.minutes} min"
         else:
             return "Justo ahora"
+
+    @app.route('/posts_with_comments', methods=['GET'])
+    def list_posts_with_comments():
+        """
+        Lista todas las publicaciones y, opcionalmente, filtra por usuario si se proporciona 'user_id'.
+        Incluye comentarios y respuestas de comentarios.
+        """
+        db = next(get_db())  # Obtiene la sesión de base de datos
+
+        # Obtener el 'user_id' de los parámetros de la URL (opcional)
+        user_id = request.args.get('user_id', type=int)
+
+        # Construir la consulta base
+        query = db.query(Publicaciones).options(
+            joinedload(Publicaciones.usuario),
+            joinedload(Publicaciones.likes),
+            joinedload(Publicaciones.comentarios).joinedload(Comments.usuario),
+            joinedload(Publicaciones.comentarios).joinedload(Comments.likes),
+            joinedload(Publicaciones.comentarios).joinedload(Comments.respuestas).joinedload(AnswersComments.usuario),
+            joinedload(Publicaciones.comentarios).joinedload(Comments.respuestas).joinedload(AnswersComments.likes)
+        )
+
+        # Filtrar por 'user_id' si se proporciona
+        if user_id:
+            query = query.filter(Publicaciones.userIDPublic == user_id)
+
+        publicaciones = query.all()
+
+        # Formatear las publicaciones
+        publicaciones_list = []
+        for publicacion in publicaciones:
+            publicacion_data = {
+                "IDpublic": publicacion.IDpublic,
+                "username": publicacion.usuario.username,
+                "avatar": publicacion.usuario.avatar,
+                "rutaImagen": publicacion.rutaImagen,
+                "contenido": publicacion.contenido,
+                "time": calculate_time_ago(publicacion.fecha),
+                "likes": len(publicacion.likes),
+                "comments": [],
+            }
+
+            # Ordenar los comentarios por fecha ascendente (opcional)
+            comentarios_ordenados = sorted(publicacion.comentarios, key=lambda x: x.fecha)
+            for comentario in comentarios_ordenados:
+                comentario_data = {
+                    "IDcomments": comentario.IDcomments,
+                    "username": comentario.usuario.username,
+                    "avatar": comentario.usuario.avatar,
+                    "comment": comentario.contenido,
+                    "time": calculate_time_ago(comentario.fecha),
+                    "likes": len(comentario.likes),
+                    "replies": [],
+                    "isReplying": False
+                }
+
+                # Ordenar las respuestas por fecha ascendente (opcional)
+                respuestas_ordenadas = sorted(comentario.respuestas, key=lambda x: x.fecha)
+                for respuesta in respuestas_ordenadas:
+                    respuesta_data = {
+                        "IDanswer": respuesta.IDanswer,
+                        "username": respuesta.usuario.username,
+                        "avatar": respuesta.usuario.avatar,
+                        "comment": respuesta.contenido,
+                        "time": calculate_time_ago(respuesta.fecha),
+                        "likes": len(respuesta.likes)
+                    }
+                    comentario_data["replies"].append(respuesta_data)
+
+                publicacion_data["comments"].append(comentario_data)
+
+            publicaciones_list.append(publicacion_data)
+
+        return jsonify(publicaciones_list), 200
