@@ -15,6 +15,7 @@ services:
       - ./run.py:/app/run.py
       - ./cert.pem:/app/cert.pem
       - ./key.pem:/app/key.pem
+      - ./uploads:/app/uploads  # Volumen persistente para las imágenes subidas
     entrypoint: >
       sh -c "
       while ! nc -z mysql 3306; do
@@ -41,6 +42,7 @@ services:
 
 volumes:
   mysql_data:
+  uploads:  # Volumen para las imágenes subidas
 
 networks:
   flask_network:

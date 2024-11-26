@@ -254,50 +254,54 @@ def register_routes(app):
         """
         Crear una nueva publicación con una foto subida como archivo.
         """
-        from datetime import datetime  # Asegúrate de importar datetime si usas fechas
-        
-        # Obtén los datos del formulario
+        from datetime import datetime
+
+        # Datos del formulario
         userIDPublic = request.form.get('userIDPublic')
         contenido = request.form.get('contenido', '')
         filtroIDPublic = request.form.get('filtroIDPublic', None)
         file = request.files.get('rutaImagen')
-        db = next(get_db())  # Obtiene la sesión de base de datos
 
-        # Validar si la solicitud contiene datos de formulario
-        userIDPublic = request.form.get('userIDPublic')
-        contenido = request.form.get('contenido')
-        filtroIDPublic = request.form.get('filtroIDPublic')
-        ruta_imagen = request.files.get('rutaImagen')  # Obtener el archivo si está presente
-
-        # Validar datos obligatorios
+        # Validaciones básicas
         if not userIDPublic or not file:
             return jsonify({"message": "Datos obligatorios faltantes."}), 400
 
-        # Validar el formato del archivo
         if not allowed_file(file.filename):
             return jsonify({"message": "Formato de archivo no permitido."}), 400
 
         try:
-            # Guardar el archivo con un nombre seguro
-            filename = secure_filename(f"user_{userIDPublic}_{file.filename}")
+            db = next(get_db())  # Obtén la sesión de la base de datos
+
+            # Validar usuario
+            usuario = db.query(User).filter_by(IDuser=userIDPublic).first()
+            if not usuario:
+                return jsonify({"message": "Usuario no encontrado."}), 404
+
+            # Validar filtro
+            filtro = db.query(Filtros).filter_by(IDfiltro=filtroIDPublic).first() if filtroIDPublic else None
+            if filtroIDPublic and not filtro:
+                return jsonify({"message": f"El filtro con ID {filtroIDPublic} no existe."}), 400
+
+            # Crear la publicación sin guardar la imagen todavía
+            nueva_publicacion = Publicaciones(
+                rutaImagen="",  # Temporalmente vacío
+                contenido=contenido,
+                userIDPublic=userIDPublic,
+                filtroIDPublic=filtroIDPublic if filtro else None,
+                fecha=datetime.utcnow()
+            )
+            db.add(nueva_publicacion)
+            db.flush()  # Esto genera el ID de la publicación sin hacer commit aún
+
+            # Ahora que tenemos el ID, guardar el archivo con el ID de la publicación
+            filename = secure_filename(f"post_{nueva_publicacion.IDpublic}_{file.filename}")
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(filepath)
 
-            # Crear la nueva publicación en la base de datos
-            db = next(get_db())  # Obtén la sesión de la base de datos
+            # Actualizar la ruta de la imagen en la publicación
+            nueva_publicacion.rutaImagen = filepath
+            db.commit()  # Ahora hacemos commit con la ruta de la imagen actualizada
 
-            nueva_publicacion = Publicaciones(
-                rutaImagen=filepath,
-                contenido=contenido,
-                userIDPublic=userIDPublic,
-                filtroIDPublic=filtroIDPublic,
-                fecha=datetime.utcnow()  # Asigna la fecha actual
-            )
-
-            db.add(nueva_publicacion)  # Añadir la publicación a la sesión
-            db.commit()  # Confirmar la transacción
-
-            # Devolver la publicación creada
             return jsonify({
                 "message": "Publicación creada exitosamente",
                 "publicacion": {
@@ -311,34 +315,7 @@ def register_routes(app):
             }), 201
         except Exception as e:
             return jsonify({"message": f"Error al procesar la publicación: {str(e)}"}), 500
-        if not userIDPublic:
-            return jsonify({"message": "Faltan datos obligatorios: userIDPublic"}), 400
 
-        # Verificar la existencia del usuario
-        usuario = db.query(User).filter_by(IDuser=userIDPublic).first()
-        if not usuario:
-            return jsonify({"message": "Usuario no encontrado"}), 404
-
-        # Verificar si existe el filtro (si se proporciona)
-        filtro = db.query(Filtros).filter_by(IDfiltro=filtroIDPublic).first() if filtroIDPublic else None
-
-        # Manejar la imagen si está presente
-        imagen_path = None
-        if ruta_imagen:
-            imagen_folder = 'uploads/'  # Carpeta donde se guardarán las imágenes
-            os.makedirs(imagen_folder, exist_ok=True)  # Crear la carpeta si no existe
-            imagen_path = os.path.join(imagen_folder, ruta_imagen.filename)  # Ruta completa de la imagen
-            ruta_imagen.save(imagen_path)  # Guardar la imagen en la carpeta
-
-        # Crear la publicación
-        publicacion = Publicaciones(
-            rutaImagen=imagen_path,  # Ruta de la imagen o None
-            contenido=contenido,  # Contenido o None
-            userIDPublic=userIDPublic,
-            filtroIDPublic=filtro.IDfiltro if filtro else None
-        )
-        db.add(publicacion)
-        db.commit()
 
 
 
