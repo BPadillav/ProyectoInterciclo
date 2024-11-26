@@ -46,9 +46,9 @@ export class CommentsPage implements OnInit {
   }
 
   loadComments(postId: string) {
-    this.http.get<any[]>(`${this.baseUrl}/list_comments/${postId}`).subscribe({
+    this.http.get<any>(`${this.baseUrl}/comments/${postId}`).subscribe({
       next: (data) => {
-        this.comments = data || [];
+        this.comments = data[postId] || []; // Extrae los comentarios del postId específico
       },
       error: (err) => {
         console.error('Error al cargar comentarios:', err);
@@ -56,6 +56,7 @@ export class CommentsPage implements OnInit {
       },
     });
   }
+  
 
   addComment() {
     if (this.newComment.trim()) {
@@ -66,19 +67,20 @@ export class CommentsPage implements OnInit {
         userIDComment: this.user.IDuser,
       };
 
-      console.log(commentData);
-      console.log(this.user);
+      // console.log(commentData);
+      // console.log(this.user);
       
       this.http.post(`${this.baseUrl}/create_comment`, commentData).subscribe({
         next: (response: any) => {
           this.showToast('Comentario agregado', 'success');
-          this.comments.push({
-            ...commentData,
-            time: 'Justo ahora',
-            likes: 0,
-            avatar: this.user.avatar,
-            replies: [],
-          });
+          // this.comments.push({
+          //   ...commentData,
+          //   time: 'Justo ahora',
+          //   likes: 0,
+          //   avatar: this.user.avatar,
+          //   replies: [],
+          // });
+          this.loadComments(this.postId!);
           this.newComment = ''; // Limpia el campo
         },
         error: (err) => {
@@ -100,23 +102,22 @@ export class CommentsPage implements OnInit {
   addReply(comment: any) {
     if (comment.newReply.trim()) {
       const replyData = {
-        commentId: comment.id, // Usa el ID del comentario padre
-        reply: comment.newReply,
-        username: 'your_username',
+        commentIDAnswer: comment.IDcomments, // ID del comentario padre
+        contenido: comment.newReply, // Contenido de la respuesta
+        userIDAnswer: this.user.IDuser, // ID del usuario que responde
       };
-
-      this.http.post(`${this.baseUrl}/replies`, replyData).subscribe({
+  
+      this.http.post(`${this.baseUrl}/create_answer`, replyData).subscribe({
         next: (response: any) => {
           this.showToast('Respuesta agregada', 'success');
+  
+          // Agregar la nueva respuesta al comentario
           comment.replies = comment.replies || [];
-          comment.replies.push({
-            ...replyData,
-            time: 'Justo ahora',
-            likes: 0,
-            avatar: 'assets/img/avatars/7.jpg',
-          });
-          comment.newReply = ''; // Limpia el campo de respuesta
-          comment.isReplying = false; // Cierra el campo de respuesta
+          this.loadComments(this.postId!);
+  
+          // Limpiar el campo de respuesta
+          comment.newReply = '';
+          comment.isReplying = false;
         },
         error: (err) => {
           console.error('Error al agregar respuesta:', err);
@@ -125,4 +126,45 @@ export class CommentsPage implements OnInit {
       });
     }
   }
+
+
+  likeComment(comment: any) {
+    const body = {
+      userIDLike: this.user.IDuser, // ID del usuario que da el like
+      commentIDLike: comment.IDcomments, // ID del comentario que recibe el like
+    };
+  
+    this.http.post(`${this.baseUrl}/like_comment`, body).subscribe({
+      next: (response: any) => {
+        console.log('Like al comentario registrado:', response);
+        comment.likes += 1; // Incrementar el contador de likes en el comentario
+        this.showToast('¡Te gustó este comentario!', 'success');
+      },
+      error: (err) => {
+        console.error('Error al dar like al comentario:', err);
+        this.showToast('No se pudo registrar el like. Intenta de nuevo.', 'danger');
+      }
+    });
+  }
+  
+  likeReply(reply: any) {
+    const body = {
+      userIDLike: this.user.IDuser, // ID del usuario que da el like
+      answerIDLike: reply.IDanswer, // ID de la respuesta que recibe el like
+    };
+  
+    this.http.post(`${this.baseUrl}/like_comment`, body).subscribe({
+      next: (response: any) => {
+        console.log('Like a la respuesta registrado:', response);
+        reply.likes += 1; // Incrementar el contador de likes en la respuesta
+        this.showToast('¡Te gustó esta respuesta!', 'success');
+      },
+      error: (err) => {
+        console.error('Error al dar like a la respuesta:', err);
+        this.showToast('No se pudo registrar el like. Intenta de nuevo.', 'danger');
+      }
+    });
+  }
+  
+  
 }

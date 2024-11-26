@@ -30,11 +30,11 @@
         <ion-row class="ion-align-items-center">
           <ion-col size="auto">
             <ion-avatar class="avatar-sm">
-              <img [src]="post.avatar" [alt]="post.username">
+              <img [src]="post.avatar" [alt]="post.usuario	">
             </ion-avatar>
           </ion-col>
           <ion-col>
-            <strong>{{ post.username }}</strong>
+            <strong>{{ post.usuario	 }}</strong>
           </ion-col>
           <ion-col size="auto">
             <ion-icon name="ellipsis-horizontal"></ion-icon>
@@ -44,20 +44,20 @@
 
       <!-- Imagen de la Publicación -->
       <div class="post-media">
-        <img [src]="post.image" [alt]="'Post by ' + post.username">
+        <img [src]="post.rutaImagen" [alt]="'Post by ' + post.usuario	">
       </div>
 
       <!-- Acciones de la Publicación -->
       <div class="post-actions">
         <ion-row>
           <ion-col>
-            <ion-button fill="clear" (click)="likePost(post.id, post)">
+            <ion-button fill="clear" (click)="likePost(post.IDpublic, post)">
               <ion-icon
                 slot="icon-only"
                 [name]="post.likes > 0 ? 'heart' : 'heart-outline'">
               </ion-icon>
             </ion-button>
-            <ion-button fill="clear" (click)="viewComments(post.id)">
+            <ion-button fill="clear" (click)="viewComments(post.IDpublic)">
               <ion-icon slot="icon-only" name="chatbubble-outline"></ion-icon>
             </ion-button>
             <ion-button fill="clear">
@@ -79,13 +79,13 @@
 
       <!-- Comentarios -->
       <div class="post-comments">
-        <div class="comment-item" *ngFor="let comment of post.comments.slice(0, 2)">
-          <span class="username">{{ comment.username }}</span>
-          {{ comment.comment }}
+        <div class="comment-item" *ngFor="let comment of post.comentarios.slice(0, 2)">
+          <span class="username">{{ comment.usuario }}</span>
+          {{ comment.contenido }}
         </div>
         <div class="comment-expander">
-          <ion-button fill="clear" (click)="viewComments(post.id)">
-            Ver todos los {{ post.comments.length }} comentarios
+          <ion-button fill="clear" (click)="viewComments(post.IDpublic)">
+            Ver todos los {{ post.comentarios.length }} comentarios
           </ion-button>
         </div>
       </div>

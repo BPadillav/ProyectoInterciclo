@@ -12,6 +12,7 @@ export class HomePage implements OnInit {
   stories: any[] = [];
   posts: any[] = [];
   private baseUrl: string = '';
+  private user: any = null;
 
   constructor(
     private http: HttpClient,
@@ -22,6 +23,8 @@ export class HomePage implements OnInit {
   ngOnInit() {
     // Cargar la baseUrl desde localStorage o usar valor por defecto
     this.baseUrl = localStorage.getItem('serverUrl') || 'http://localhost:5000';
+    const authToken = localStorage.getItem('authToken') || '{}'; // Proveer valor predeterminado
+    this.user = JSON.parse(authToken);
     this.loadStories();
     this.loadPosts();
   }
@@ -51,9 +54,8 @@ export class HomePage implements OnInit {
     this.http.get<any[]>(`${this.baseUrl}/list_publicaciones`).subscribe((data) => {
       this.posts = data.map(post => ({
         ...post,
-        avatar: `${this.baseUrl}/uploads/${encodeURIComponent(post.avatar.replace('./uploads/', ''))}?t=${new Date().getTime()}`,
-        image: `${this.baseUrl}/uploads/${encodeURIComponent(post.image.replace('./uploads/', ''))}?t=${new Date().getTime()}`,
-        comments: []
+        avatar: `${this.baseUrl}/uploads/${encodeURIComponent(post.rutaImagen.replace('./uploads/', ''))}?t=${new Date().getTime()}`,
+        rutaImagen: `${this.baseUrl}/uploads/${encodeURIComponent(post.rutaImagen.replace('./uploads/', ''))}?t=${new Date().getTime()}`,
       }));
       console.log('Posts cargados:', this.posts);
     });
@@ -70,16 +72,25 @@ export class HomePage implements OnInit {
   }
 
   likePost(postId: number, post: any) {
-    this.http.post(`${this.baseUrl}/create_like/${postId}`, {}).subscribe({
-      next: (response: any) => {
-        console.log('Like registrado:', response);
-        post.likes = response.likes; // Actualizar likes en tiempo real
-        this.showToast('¡Te gustó esta publicación!', 'success');
-      },
-      error: (err) => {
-        console.error('Error al registrar el like:', err);
-        this.showToast('No se pudo registrar el like. Intenta de nuevo.', 'danger');
-      }
-    });
-  }
+  const body = {
+    userIDLike: this.user.IDuser, // ID del usuario que da el like
+    publicIDLike: postId // Asume que estás dando like a una publicación
+  };
+
+  console.log(this.user);
+  
+
+  this.http.post(`${this.baseUrl}/create_like`, body).subscribe({
+    next: (response: any) => {
+      console.log('Like registrado:', response);
+      post.likes += 1; // Incrementar los likes en el frontend
+      this.showToast('¡Te gustó esta publicación!', 'success');
+    },
+    error: (err) => {
+      console.error('Error al registrar el like:', err);
+      this.showToast('No se pudo registrar el like. Intenta de nuevo.', 'danger');
+    }
+  });
+}
+
 }

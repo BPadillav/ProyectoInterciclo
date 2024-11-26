@@ -28,7 +28,12 @@
         </ion-col>
         <ion-col size="auto" class="icon-col">
           <div class="icon-and-likes">
-            <ion-icon name="heart-outline"></ion-icon>
+            <ion-button fill="clear" (click)="likeComment(comment)">
+              <ion-icon
+                slot="icon-only"
+                [name]="comment.likes > 0 ? 'heart' : 'heart-outline'">
+              </ion-icon>
+            </ion-button>
             <span class="likes">{{ comment.likes }}</span>
           </div>
         </ion-col>
@@ -65,7 +70,12 @@
             </ion-col>
             <ion-col size="auto" class="icon-col">
               <div class="icon-and-likes">
-                <ion-icon name="heart-outline"></ion-icon>
+                <ion-button fill="clear" (click)="likeReply(reply)">
+                  <ion-icon
+                    slot="icon-only"
+                    [name]="reply.likes > 0 ? 'heart' : 'heart-outline'">
+                  </ion-icon>
+                </ion-button>
                 <span class="likes">{{ reply.likes }}</span>
               </div>
             </ion-col>

@@ -1,9 +1,17 @@
-from flask import request, jsonify
+from flask import request, jsonify, send_from_directory
 from backend.database.init_db import get_db  # Asegúrate de importar get_db correctamente
 from backend.database.models import User, Comments, Likes, Filtros, Publicaciones, AnswersComments
 from sqlalchemy.orm import joinedload
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from werkzeug.utils import secure_filename
+import os
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+import os
 
 def register_routes(app):
     """
@@ -34,17 +42,17 @@ def register_routes(app):
 
         # Verifica si los campos requeridos están presentes
         if not data.get('email') or not data.get('username') or not data.get('password'):
-            return jsonify({'message': 'Correo electrónico, nombre de usuario y contraseña son requeridos'}), 400
+            return jsonify({'valid': 'false','message': 'Correo electrónico, nombre de usuario y contraseña son requeridos'}), 400
 
         # Verifica si ya existe un usuario con el correo proporcionado
         existing_user = db.query(User).filter(User.email == data['email']).first()
         if existing_user:
-            return jsonify({'message': 'El usuario ya existe'}), 400
+            return jsonify({'valid': 'false','message': 'El usuario ya existe'}), 400
 
         # Verifica si ya existe un usuario con el nombre de usuario
         existing_username = db.query(User).filter(User.username == data['username']).first()
         if existing_username:
-            return jsonify({'message': 'El nombre de usuario ya existe'}), 400
+            return jsonify({'valid': 'false','message': 'El nombre de usuario ya existe'}), 400
 
         # Crear un nuevo usuario
         new_user = User(
@@ -57,7 +65,7 @@ def register_routes(app):
         db.add(new_user)
         db.commit()
 
-        return jsonify({'message': 'Usuario creado exitosamente', 'user_id': new_user.IDuser}), 201
+        return jsonify({'valid': 'true','message': 'Usuario creado exitosamente', 'user_id': new_user.IDuser}), 201
 
 
     @app.route('/update_user/<int:user_id>', methods=['PUT'])
@@ -133,19 +141,20 @@ def register_routes(app):
 
         # Verifica si los campos requeridos están presentes
         if not data.get('email') or not data.get('password'):
-            return jsonify({'message': 'Correo electrónico y contraseña son requeridos'}), 400
+            return jsonify({'valid': 'false','message': 'Correo electrónico y contraseña son requeridos'}), 400
 
         # Buscar al usuario en la base de datos
         user = db.query(User).filter(User.email == data['email']).first()
         if not user:
-            return jsonify({'message': 'Credenciales incorrectas'}), 200
+            return jsonify({'valid': 'false','message': 'Credenciales incorrectas'}), 200
 
         # Verifica la contraseña directamente
         if user.password != data['password']:
-            return jsonify({'message': 'Credenciales incorrectas'}), 200
+            return jsonify({'valid': 'false','message': 'Credenciales incorrectas'}), 200
 
         # Retorna los datos del usuario si las credenciales son correctas
         return jsonify({
+            'valid': 'true',
             "IDuser": user.IDuser,
             "email": user.email,
             "username": user.username,
@@ -240,36 +249,93 @@ def register_routes(app):
 
 # PUBLICACIONES *****************************************************
 
+    # @app.route('/create_publicacion', methods=['POST'])
+    # def create_publicacion():
+    #     """
+    #     Crear una nueva publicación.
+    #     """
+    #     data = request.get_json()
+    #     db = next(get_db())  # Obtiene la sesión de base de datos
+
+    #     # Validar datos obligatorios
+    #     if 'userIDPublic' not in data:
+    #         return jsonify({"message": "Faltan datos obligatorios: userIDPublic"}), 400
+
+    #     # Verificar la existencia del usuario
+    #     usuario = db.query(User).filter_by(IDuser=data['userIDPublic']).first()
+    #     if not usuario:
+    #         return jsonify({"message": "Usuario no encontrado"}), 404
+
+    #     # Crear la publicación
+    #     publicacion = Publicaciones(
+    #         rutaImagen=data.get('rutaImagen'),
+    #         contenido=data.get('contenido'),
+    #         userIDPublic=data['userIDPublic']
+    #     )
+    #     db.add(publicacion)
+    #     db.commit()
+
+    #     return jsonify({
+    #         "message": "Publicación creada exitosamente",
+    #         "publicacion_id": publicacion.IDpublic
+    #     }), 201
+
     @app.route('/create_publicacion', methods=['POST'])
     def create_publicacion():
         """
-        Crear una nueva publicación.
+        Crear una nueva publicación con una foto subida como archivo.
         """
-        data = request.get_json()
-        db = next(get_db())  # Obtiene la sesión de base de datos
 
-        # Validar datos obligatorios
-        if 'userIDPublic' not in data:
-            return jsonify({"message": "Faltan datos obligatorios: userIDPublic"}), 400
+        # Datos del formulario
+        userIDPublic = request.form.get('userIDPublic')
+        contenido = request.form.get('contenido', '')
+        file = request.files.get('rutaImagen')
 
-        # Verificar la existencia del usuario
-        usuario = db.query(User).filter_by(IDuser=data['userIDPublic']).first()
-        if not usuario:
-            return jsonify({"message": "Usuario no encontrado"}), 404
+        # Validaciones básicas
+        if not userIDPublic or not file:
+            return jsonify({"message": "Datos obligatorios faltantes."}), 400
 
-        # Crear la publicación
-        publicacion = Publicaciones(
-            rutaImagen=data.get('rutaImagen'),
-            contenido=data.get('contenido'),
-            userIDPublic=data['userIDPublic']
-        )
-        db.add(publicacion)
-        db.commit()
+        if not allowed_file(file.filename):
+            return jsonify({"message": "Formato de archivo no permitido."}), 400
 
-        return jsonify({
-            "message": "Publicación creada exitosamente",
-            "publicacion_id": publicacion.IDpublic
-        }), 201
+        try:
+            db = next(get_db())  # Obtén la sesión de la base de datos
+
+            # Validar usuario
+            usuario = db.query(User).filter_by(IDuser=userIDPublic).first()
+            if not usuario:
+                return jsonify({"message": "Usuario no encontrado."}), 404
+
+            # Crear la publicación sin guardar la imagen todavía
+            nueva_publicacion = Publicaciones(
+                rutaImagen="",  # Temporalmente vacío
+                contenido=contenido,
+                userIDPublic=userIDPublic
+            )
+            db.add(nueva_publicacion)
+            db.flush()  # Esto genera el ID de la publicación sin hacer commit aún
+
+            # Ahora que tenemos el ID, guardar el archivo con el ID de la publicación
+            filename = secure_filename(f"post_{nueva_publicacion.IDpublic}_{file.filename}")
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+
+            # Actualizar la ruta de la imagen en la publicación
+            nueva_publicacion.rutaImagen = filepath
+            db.commit()  # Ahora hacemos commit con la ruta de la imagen actualizada
+
+            return jsonify({
+                "message": "Publicación creada exitosamente",
+                "publicacion": {
+                    "id": nueva_publicacion.IDpublic,
+                    "rutaImagen": nueva_publicacion.rutaImagen,
+                    "contenido": nueva_publicacion.contenido,
+                    "userIDPublic": nueva_publicacion.userIDPublic,
+                    "fecha": nueva_publicacion.fecha.strftime("%Y-%m-%d %H:%M:%S"),
+                }
+            }), 201
+        except Exception as e:
+            return jsonify({"message": f"Error al procesar la publicación: {str(e)}"}), 500
 
 
 
@@ -926,3 +992,77 @@ def register_routes(app):
             publicaciones_list.append(publicacion_data)
 
         return jsonify(publicaciones_list), 200
+    
+
+# FILTROS CUDA ******************************************************************
+
+    from backend.filters import process_image, allowed_file
+
+    @app.route('/apply_filter', methods=['POST'])
+    def apply_filter():
+        """
+        Aplica un filtro a una imagen enviada en Base64 y devuelve la URL de la imagen procesada.
+        """
+        try:
+            from datetime import datetime
+            import base64
+            import os
+            import cv2
+            import numpy as np
+
+            # Filtros estáticos disponibles
+            available_filters = {
+                "sharpen": "Filtro de nitidez",
+                "dilation": "Filtro de dilatación",
+                "canny": "Filtro Canny"
+            }
+
+            # Parámetros recibidos del cliente
+            filter_type = request.form.get('filter_type', 'sharpen')
+            num_threads = int(request.form.get('num_threads', 1024))
+            mask_size = int(request.form.get('mask_size', 3))
+            base64_image = request.form.get('rutaImagen')
+
+            # Validar filtro seleccionado
+            if filter_type not in available_filters:
+                return jsonify({"message": "Filtro no válido."}), 400
+
+            # Validar imagen en Base64
+            if not base64_image:
+                return jsonify({"message": "Imagen en Base64 no proporcionada."}), 400
+
+            # Decodificar la imagen Base64
+            header, encoded = base64_image.split(',', 1)
+            image_data = base64.b64decode(encoded)
+            np_img = np.frombuffer(image_data, np.uint8)
+            image = cv2.imdecode(np_img, cv2.IMREAD_COLOR)
+
+            if image is None:
+                return jsonify({"message": "No se pudo leer la imagen proporcionada."}), 400
+
+            # Procesar la imagen con el filtro seleccionado
+            processed_image, time_results = process_image(num_threads, filter_type, mask_size, image)
+
+            # Generar un nombre único para la imagen procesada
+            filename = f"filtered_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.png"
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+            # Guardar la imagen procesada
+            cv2.imwrite(filepath, processed_image)
+
+            # Retornar la URL de la imagen procesada
+            return jsonify({
+                "message": "Filtro aplicado correctamente.",
+                "processed_image_url": filename,
+                "processing_time": time_results
+            }), 200
+
+        except Exception as e:
+            return jsonify({"message": f"Error al aplicar filtro: {str(e)}"}), 500
+        
+    @app.route('/uploads/<path:filename>', methods=['GET'])
+    def uploaded_file(filename):
+        """
+        Sirve los archivos desde el directorio de subidas.
+        """
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
