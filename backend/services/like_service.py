@@ -19,6 +19,7 @@ def create_like(userIDLike, publicIDLike=None, commentIDLike=None, answerIDLike=
         commentIDLike=commentIDLike,
         answerIDLike=answerIDLike
     )
+
     session.add(new_like)
     session.commit()
     return new_like

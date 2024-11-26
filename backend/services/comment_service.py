@@ -7,6 +7,7 @@ def create_comment(contenido=None, image=None, userIDComment=None, publicIDComme
     Crea un nuevo comentario. Se debe especificar al menos contenido o una imagen.
     """
     # Validar que al menos uno de los campos esté lleno
+
     if not contenido and not image:
         raise ValueError("El comentario debe tener contenido o una imagen.")
     if not userIDComment or not publicIDComment:
@@ -46,11 +47,9 @@ def update_comment(comment_id, contenido=None, image=None):
     if not comment:
         raise ValueError("Comentario no encontrado.")
 
-    # Validar que al menos uno de los campos esté lleno
     if not contenido and not image:
         raise ValueError("El comentario debe tener contenido o una imagen.")
 
-    # Actualizar los campos proporcionados
     comment.contenido = contenido or comment.contenido
     comment.image = image or comment.image
     session.commit()

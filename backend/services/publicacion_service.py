@@ -40,7 +40,7 @@ def update_publicacion(publicacion_id, rutaImagen=None, contenido=None, filtroID
     """
     publicacion = session.query(Publicaciones).filter(Publicaciones.IDpublic == publicacion_id).first()
     if not publicacion:
-        raise ValueError("Publicación no encontrada.")
+        raise ValueError("La publicación no fue encontrada.")
     
     if rutaImagen:
         publicacion.rutaImagen = rutaImagen
